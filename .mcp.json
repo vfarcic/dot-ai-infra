@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dot-ai": {
+      "type": "http",
+      "url": "https://dot-ai.devopstoolkit.ai"
+    }
+  }
+}
