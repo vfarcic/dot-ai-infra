@@ -4,18 +4,29 @@
 #
 # Examples:
 # > main apply argocd --host_name argocd.example.com --ingress_class_name nginx
+# > main apply argocd --host_name argocd.example.com --tls
 def "main apply argocd" [
     --host-name = "",
     --apply-apps = true,
-    --ingress-class-name = "traefik"
+    --ingress-class-name = "traefik",
+    --admin-password = "admin123",
+    --app-namespace = "a-team",
+    --tls = false,
+    --cluster-issuer = "letsencrypt"
 ] {
 
     let git_url = git config --get remote.origin.url
 
+    let hashed_password = (
+        htpasswd -nbBC 10 "" $admin_password
+            | tr -d ':\n'
+            | sed 's/$2y/$2a/'
+    )
+
     {
         configs: {
             secret: {
-                argocdServerAdminPassword: "$2a$10$m3eTlEdRen0nS86c5Zph5u/bDFQMcWZYdG3NVdiyaACCqoxLJaz16"
+                argocdServerAdminPassword: $hashed_password
                 argocdServerAdminPasswordMtime: "2021-11-08T15:04:05Z"
             }
             cm: {
@@ -25,11 +36,16 @@ def "main apply argocd" [
             params: { "server.insecure": true }
         }
         server: {
-            ingress: {
+            ingress: ({
                 enabled: true
                 ingressClassName: $ingress_class_name
                 hostname: $host_name
-            }
+            } | if $tls {
+                $in | merge {
+                    annotations: { "cert-manager.io/cluster-issuer": $cluster_issuer }
+                    tls: true
+                }
+            } else { $in })
             extraArgs: [
                 --insecure
             ]
@@ -64,7 +80,7 @@ def "main apply argocd" [
             }
             destination: {
                 server: "https://kubernetes.default.svc"
-                namespace: a-team
+                namespace: $app_namespace
             }
             syncPolicy: {
                 automated: {

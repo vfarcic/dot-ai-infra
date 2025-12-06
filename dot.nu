@@ -5,6 +5,7 @@ source scripts/common.nu
 source scripts/argocd.nu
 source scripts/ingress.nu
 source scripts/dot-ai.nu
+source scripts/cert-manager.nu
 
 def main [] {}
 
@@ -17,9 +18,17 @@ def "main setup" [] {
 
     main create kubernetes google --min-nodes 3 --node-size small --auth false
 
+    main apply certmanager
+
     main apply ingress traefik --provider google
 
-    # main apply argocd --host-name 34.148.120.91.nip.io --ingress-class-name traefik
+    kubectl create namespace infra
+
+    (
+        main apply argocd --host-name argocd.devopstoolkit.ai
+            --ingress-class-name traefik --app-namespace infra
+            --admin-password $env.ARGO_CD_PASSWORD
+    )
 
     main print source
 
