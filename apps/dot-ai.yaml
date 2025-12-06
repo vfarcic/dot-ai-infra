@@ -20,8 +20,6 @@ spec:
           enabled: true
           className: traefik
           host: dot-ai.devopstoolkit.ai
-        controller:
-          enabled: true
   destination:
     server: https://kubernetes.default.svc
     namespace: dot-ai
