@@ -27,7 +27,16 @@ def "main setup" [] {
     (
         main apply argocd --host-name argocd.devopstoolkit.ai
             --ingress-class-name traefik --app-namespace infra
-            --admin-password $env.ARGO_CD_PASSWORD
+            --admin-password $env.ARGO_CD_PASSWORD --tls true
+    )
+
+    kubectl create namespace dot-ai
+
+    (
+        kubectl create secret generic dot-ai-mcp
+            --namespace dot-ai
+            $"--from-literal=ANTHROPIC_API_KEY=($env.ANTHROPIC_API_KEY)"
+            $"--from-literal=OPENAI_API_KEY=($env.OPENAI_API_KEY)"
     )
 
     main print source
