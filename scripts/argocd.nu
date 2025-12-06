@@ -26,7 +26,6 @@ def "main apply argocd" [
     {
         configs: {
             secret: {
-                argocdServerAdminPassword: $hashed_password
                 argocdServerAdminPasswordMtime: "2021-11-08T15:04:05Z"
             }
             cm: {
@@ -60,6 +59,7 @@ def "main apply argocd" [
         helm upgrade --install argocd argo/argo-cd
             --namespace argocd --create-namespace
             --values argocd-values.yaml --wait
+            --set $"configs.secret.argocdServerAdminPassword=($hashed_password)"
     )
 
     mkdir argocd

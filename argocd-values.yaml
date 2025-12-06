@@ -1,0 +1,18 @@
+configs:
+  secret:
+    argocdServerAdminPasswordMtime: 2021-11-08T15:04:05Z
+  cm:
+    application.resourceTrackingMethod: annotation
+    timeout.reconciliation: 60s
+  params:
+    server.insecure: true
+server:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: argocd.devopstoolkit.ai
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+    tls: true
+  extraArgs:
+  - --insecure
