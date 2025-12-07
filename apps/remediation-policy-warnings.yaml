@@ -23,10 +23,6 @@ spec:
     - type: Warning
       namespace: examples
     - type: Warning
-      namespace: gmp-public
-    - type: Warning
-      namespace: gmp-system
-    - type: Warning
       namespace: infra
     - type: Warning
       namespace: traefik
