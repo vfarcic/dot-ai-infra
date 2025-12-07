@@ -33,10 +33,10 @@ def "main setup" [] {
     kubectl create namespace dot-ai
 
     (
-        kubectl create secret generic dot-ai-mcp
+        kubectl create secret generic dot-ai-secrets
             --namespace dot-ai
-            $"--from-literal=ANTHROPIC_API_KEY=($env.ANTHROPIC_API_KEY)"
-            $"--from-literal=OPENAI_API_KEY=($env.OPENAI_API_KEY)"
+            $"--from-literal=anthropic-api-key=($env.ANTHROPIC_API_KEY)"
+            $"--from-literal=openai-api-key=($env.OPENAI_API_KEY)"
     )
 
     main print source

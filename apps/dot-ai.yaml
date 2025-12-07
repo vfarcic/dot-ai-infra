@@ -14,8 +14,7 @@ spec:
     helm:
       valuesObject:
         ai:
-          provider: anthropic
-          model: anthropic_haiku
+          provider: anthropic_haiku
         ingress:
           enabled: true
           className: traefik
