@@ -13,6 +13,23 @@ spec:
   mode: manual
   eventSelectors:
     - type: Warning
+      namespace: argocd
+    - type: Warning
+      namespace: cert-manager
+    - type: Warning
+      namespace: default
+    - type: Warning
+      namespace: dot-ai
+    - type: Warning
+      namespace: examples
+    - type: Warning
+      namespace: gmp-public
+    - type: Warning
+      namespace: gmp-system
+    - type: Warning
+      namespace: infra
+    - type: Warning
+      namespace: traefik
   notifications:
     slack:
       enabled: true

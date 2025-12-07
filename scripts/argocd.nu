@@ -88,6 +88,9 @@ def "main apply argocd" [
                     prune: true
                     allowEmpty: true
                 }
+                syncOptions: [
+                    "SkipDryRunOnMissingResource=true"
+                ]
             }
         }
     } | save argocd/app.yaml --force
