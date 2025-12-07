@@ -19,6 +19,8 @@ def "main setup" [] {
     main create kubernetes google --min-nodes 3 --node-size small --auth false
 
     main apply certmanager
+    
+    main apply clusterissuer --email viktor@farcic.com
 
     main apply ingress traefik --provider google
 
@@ -37,6 +39,8 @@ def "main setup" [] {
             --namespace dot-ai
             $"--from-literal=anthropic-api-key=($env.ANTHROPIC_API_KEY)"
             $"--from-literal=openai-api-key=($env.OPENAI_API_KEY)"
+            $"--from-literal=auth-token=($env.DOT_AI_AUTH_TOKEN)"
+            $"--from-literal=SLACK_WEBHOOK_URL=($env.SLACK_WEBHOOK_URL)"
     )
 
     main print source

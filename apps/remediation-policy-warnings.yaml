@@ -1,0 +1,18 @@
+apiVersion: dot-ai.devopstoolkit.live/v1alpha1
+kind: RemediationPolicy
+metadata:
+  name: warning-events-slack
+  namespace: dot-ai
+spec:
+  mcpEndpoint: http://dot-ai.dot-ai.svc.cluster.local:3456
+  mode: manual
+  eventSelectors:
+    - type: Warning
+  notifications:
+    slack:
+      enabled: true
+      webhookUrlSecretRef:
+        name: dot-ai-secrets
+        key: SLACK_WEBHOOK_URL
+      notifyOnStart: true
+      notifyOnComplete: true
