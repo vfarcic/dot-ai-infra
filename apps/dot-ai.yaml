@@ -22,6 +22,8 @@ spec:
           tls:
             enabled: true
             clusterIssuer: letsencrypt
+        controller:
+          enabled: true
   destination:
     server: https://kubernetes.default.svc
     namespace: dot-ai
