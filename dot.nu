@@ -14,7 +14,7 @@ def "main setup" [] {
     $env.PROJECT_ID = "vfarcic"
     "export PROJECT_ID=vfarcic\n" | save --append .env
 
-    main create kubernetes google --min-nodes 3 --node-size small --auth false
+    main create kubernetes google --name dot-ai --min-nodes 3 --node-size small --auth false
 
     main apply certmanager
     

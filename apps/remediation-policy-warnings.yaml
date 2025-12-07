@@ -3,6 +3,8 @@ kind: RemediationPolicy
 metadata:
   name: warning-events-slack
   namespace: dot-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   mcpEndpoint: http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/remediate
   mcpAuthSecretRef:
