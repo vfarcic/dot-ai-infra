@@ -481,6 +481,9 @@ def --env "create gke" [
             --enable-network-policy --no-enable-autoupgrade
     )
 
+    # Pre-create empty kubeconfig file to prevent gcloud from creating a directory
+    touch $env.KUBECONFIG
+
     (
         gcloud container clusters get-credentials $name
             --project $project_id --zone us-east1-b
