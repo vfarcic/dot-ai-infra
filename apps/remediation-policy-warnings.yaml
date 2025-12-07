@@ -14,6 +14,7 @@ spec:
   notifications:
     slack:
       enabled: true
+      channel: "#dot-ai-tests"
       webhookUrlSecretRef:
         name: dot-ai-secrets
         key: SLACK_WEBHOOK_URL
