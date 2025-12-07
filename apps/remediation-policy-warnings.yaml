@@ -5,6 +5,9 @@ metadata:
   namespace: dot-ai
 spec:
   mcpEndpoint: http://dot-ai.dot-ai.svc.cluster.local:3456
+  mcpAuthSecretRef:
+    name: dot-ai-secrets
+    key: auth-token
   mode: manual
   eventSelectors:
     - type: Warning

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: warning-event-test
+  namespace: examples
+spec:
+  containers:
+    - name: test
+      image: this-image-does-not-exist:v999
+      resources:
+        limits:
+          memory: "64Mi"
+          cpu: "100m"
+  restartPolicy: Never
