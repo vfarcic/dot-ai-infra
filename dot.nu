@@ -26,6 +26,8 @@ def "main setup" [] {
 
     kubectl create namespace infra
 
+    kubectl create namespace examples
+
     (
         main apply argocd --host-name argocd.devopstoolkit.ai
             --ingress-class-name traefik --app-namespace infra

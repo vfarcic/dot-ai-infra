@@ -4,7 +4,7 @@ metadata:
   name: warning-events-slack
   namespace: dot-ai
 spec:
-  mcpEndpoint: http://dot-ai.dot-ai.svc.cluster.local:3456
+  mcpEndpoint: http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/remediate
   mcpAuthSecretRef:
     name: dot-ai-secrets
     key: auth-token
