@@ -2,3 +2,4 @@
 kubeconfig*.yaml
 gke_gcloud_auth_plugin_cache
 .DS_Store
+/tmp
