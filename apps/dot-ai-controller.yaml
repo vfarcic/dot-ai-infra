@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: ghcr.io/vfarcic/dot-ai-controller/charts
     chart: dot-ai-controller
-    targetRevision: 0.24.0
+    targetRevision: 0.25.0
   destination:
     server: https://kubernetes.default.svc
     namespace: dot-ai
