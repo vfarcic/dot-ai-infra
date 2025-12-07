@@ -11,8 +11,6 @@ def main [] {}
 
 def "main setup" [] {
 
-    rm --force .env
-
     $env.PROJECT_ID = "vfarcic"
     "export PROJECT_ID=vfarcic\n" | save --append .env
 
