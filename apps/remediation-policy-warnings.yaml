@@ -1,0 +1,35 @@
+apiVersion: dot-ai.devopstoolkit.live/v1alpha1
+kind: RemediationPolicy
+metadata:
+  name: warning-events-slack
+  namespace: dot-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  mcpEndpoint: http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/remediate
+  mcpAuthSecretRef:
+    name: dot-ai-secrets
+    key: auth-token
+  mode: manual
+  eventSelectors:
+    - type: Warning
+      namespace: argocd
+    - type: Warning
+      namespace: cert-manager
+    - type: Warning
+      namespace: dot-ai
+    - type: Warning
+      namespace: examples
+    - type: Warning
+      namespace: infra
+    - type: Warning
+      namespace: traefik
+  notifications:
+    slack:
+      enabled: true
+      channel: "#dot-ai-tests"
+      webhookUrlSecretRef:
+        name: dot-ai-secrets
+        key: SLACK_WEBHOOK_URL
+      notifyOnStart: true
+      notifyOnComplete: true
