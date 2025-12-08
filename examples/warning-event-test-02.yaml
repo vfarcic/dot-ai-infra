@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: warning-event-test
+  name: warning-event-test-02
   namespace: examples
 spec:
   containers:
