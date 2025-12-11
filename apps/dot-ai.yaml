@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: ghcr.io/vfarcic/dot-ai/charts
     chart: dot-ai
-    targetRevision: 0.155.0
+    targetRevision: 0.157.0
     helm:
       valuesObject:
         ai:
