@@ -33,3 +33,6 @@ spec:
         key: SLACK_WEBHOOK_URL
       notifyOnStart: true
       notifyOnComplete: true
+  rateLimiting:
+    eventsPerMinute: 15
+    cooldownMinutes: 60
