@@ -3,13 +3,37 @@ kind: Namespace
 metadata:
   name: gateway
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gateway-tls-wildcard
+  namespace: gateway
+spec:
+  secretName: gateway-tls-wildcard
+  issuerRef:
+    name: letsencrypt-gateway
+    kind: ClusterIssuer
+  dnsNames:
+  - "*.devopstoolkit.ai"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gateway-tls-root
+  namespace: gateway
+spec:
+  secretName: gateway-tls-root
+  issuerRef:
+    name: letsencrypt-gateway
+    kind: ClusterIssuer
+  dnsNames:
+  - devopstoolkit.ai
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: main
   namespace: gateway
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-gateway
 spec:
   gatewayClassName: gke-l7-global-external-managed
   listeners:
