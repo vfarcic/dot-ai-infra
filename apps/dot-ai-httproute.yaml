@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: dot-ai
+  namespace: dot-ai
+spec:
+  parentRefs:
+  - name: main
+    namespace: gateway
+  hostnames:
+  - dot-ai.devopstoolkit.ai
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: dot-ai
+      port: 3456
