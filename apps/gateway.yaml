@@ -3,32 +3,6 @@ kind: Namespace
 metadata:
   name: gateway
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: gateway-tls-wildcard
-  namespace: gateway
-spec:
-  secretName: gateway-tls-wildcard
-  issuerRef:
-    name: letsencrypt-gateway
-    kind: ClusterIssuer
-  dnsNames:
-  - "*.devopstoolkit.ai"
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: gateway-tls-root
-  namespace: gateway
-spec:
-  secretName: gateway-tls-root
-  issuerRef:
-    name: letsencrypt-gateway
-    kind: ClusterIssuer
-  dnsNames:
-  - devopstoolkit.ai
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -43,27 +17,3 @@ spec:
     allowedRoutes:
       namespaces:
         from: All
-  - name: https-wildcard
-    hostname: "*.devopstoolkit.ai"
-    port: 443
-    protocol: HTTPS
-    allowedRoutes:
-      namespaces:
-        from: All
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - name: gateway-tls-wildcard
-        kind: Secret
-  - name: https-root
-    hostname: devopstoolkit.ai
-    port: 443
-    protocol: HTTPS
-    allowedRoutes:
-      namespaces:
-        from: All
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - name: gateway-tls-root
-        kind: Secret
