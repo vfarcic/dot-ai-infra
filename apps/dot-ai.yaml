@@ -16,7 +16,12 @@ spec:
         ai:
           provider: anthropic_haiku
         ingress:
-          enabled: false
+          enabled: true
+          className: traefik
+          host: dot-ai.devopstoolkit.ai
+          tls:
+            enabled: true
+            clusterIssuer: letsencrypt
         controller:
           enabled: true
   destination:
