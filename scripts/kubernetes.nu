@@ -479,6 +479,7 @@ def --env "create gke" [
             --enable-autoscaling --num-nodes $min_nodes
             --min-nodes $min_nodes --max-nodes $max_nodes
             --enable-network-policy --no-enable-autoupgrade
+            --gateway-api=standard
     )
 
     # Pre-create empty kubeconfig file to prevent gcloud from creating a directory

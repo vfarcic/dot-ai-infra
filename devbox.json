@@ -4,7 +4,8 @@
     "nushell@0.108.0",
     "kubernetes-helm@3.19.1",
     "git@2.51.2",
-    "vals@0.42.6"
+    "vals@0.42.6",
+    "yq-go@4.50.1"
   ],
   "shell": {
     "init_hook": [],

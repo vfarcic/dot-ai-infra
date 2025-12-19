@@ -17,8 +17,6 @@ def "main setup" [] {
     main create kubernetes google --name dot-ai --min-nodes 3 --node-size small --auth false
 
     main apply certmanager
-    
-    main apply clusterissuer --email viktor@farcic.com
 
     main apply ingress traefik --provider google
 
@@ -48,7 +46,7 @@ def "main setup" [] {
 }
 
 def "main destroy" [] {
-    
+
     main destroy kubernetes google --delete_project false
 
 }
