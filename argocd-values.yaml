@@ -7,12 +7,14 @@ configs:
   params:
     server.insecure: true
 server:
-  ingress:
-    enabled: true
-    ingressClassName: traefik
-    hostname: argocd.devopstoolkit.ai
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
-    tls: true
   extraArgs:
   - --insecure
+  ingress:
+    enabled: false
+  httproute:
+    enabled: true
+    parentRefs:
+    - name: main
+      namespace: gateway
+    hostnames:
+    - argocd.devopstoolkit.ai

@@ -26,8 +26,8 @@ def "main setup" [] {
 
     (
         main apply argocd --host-name argocd.devopstoolkit.ai
-            --ingress-class-name traefik --app-namespace infra
-            --admin-password $env.ARGO_CD_PASSWORD --tls true
+            --app-namespace infra --admin-password $env.ARGO_CD_PASSWORD
+            --gateway-api true
     )
 
     kubectl create namespace dot-ai

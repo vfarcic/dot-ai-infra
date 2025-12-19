@@ -5,6 +5,7 @@
 # Examples:
 # > main apply argocd --host_name argocd.example.com --ingress_class_name nginx
 # > main apply argocd --host_name argocd.example.com --tls
+# > main apply argocd --host_name argocd.example.com --gateway-api --gateway-name main --gateway-namespace gateway
 def "main apply argocd" [
     --host-name = "",
     --apply-apps = true,
@@ -12,7 +13,10 @@ def "main apply argocd" [
     --admin-password = "admin123",
     --app-namespace = "a-team",
     --tls = false,
-    --cluster-issuer = "letsencrypt"
+    --cluster-issuer = "letsencrypt",
+    --gateway-api = false,
+    --gateway-name = "main",
+    --gateway-namespace = "gateway"
 ] {
 
     let git_url = git config --get remote.origin.url
@@ -23,7 +27,7 @@ def "main apply argocd" [
             | sed 's/$2y/$2a/'
     )
 
-    {
+    mut values = {
         configs: {
             secret: {
                 argocdServerAdminPasswordMtime: "2021-11-08T15:04:05Z"
@@ -35,21 +39,44 @@ def "main apply argocd" [
             params: { "server.insecure": true }
         }
         server: {
-            ingress: ({
-                enabled: true
-                ingressClassName: $ingress_class_name
-                hostname: $host_name
-            } | if $tls {
-                $in | merge {
-                    annotations: { "cert-manager.io/cluster-issuer": $cluster_issuer }
-                    tls: true
-                }
-            } else { $in })
             extraArgs: [
                 --insecure
             ]
         }
-    } | save argocd-values.yaml --force
+    }
+
+    if $gateway_api {
+        $values = $values | merge deep {
+            server: {
+                ingress: { enabled: false }
+                httproute: {
+                    enabled: true
+                    parentRefs: [{
+                        name: $gateway_name
+                        namespace: $gateway_namespace
+                    }]
+                    hostnames: [$host_name]
+                }
+            }
+        }
+    } else {
+        $values = $values | merge deep {
+            server: {
+                ingress: ({
+                    enabled: true
+                    ingressClassName: $ingress_class_name
+                    hostname: $host_name
+                } | if $tls {
+                    $in | merge {
+                        annotations: { "cert-manager.io/cluster-issuer": $cluster_issuer }
+                        tls: true
+                    }
+                } else { $in })
+            }
+        }
+    }
+
+    $values | save argocd-values.yaml --force
 
     helm repo add argo https://argoproj.github.io/argo-helm
 

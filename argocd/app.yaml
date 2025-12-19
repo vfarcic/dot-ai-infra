@@ -18,4 +18,4 @@ spec:
       prune: true
       allowEmpty: true
     syncOptions:
-      - SkipDryRunOnMissingResource=true
+    - SkipDryRunOnMissingResource=true
