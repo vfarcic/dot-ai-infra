@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://port-labs.github.io/helm-charts
     chart: port-k8s-exporter
-    targetRevision: 0.3.26
+    targetRevision: 0.3.19
     helm:
       valuesObject:
         secret:
