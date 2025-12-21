@@ -1,0 +1,113 @@
+name: Create Solution
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Solution name'
+        required: true
+        type: string
+      namespace:
+        description: 'Kubernetes namespace'
+        required: true
+        type: string
+      intent:
+        description: 'Original user intent'
+        required: true
+        type: string
+      rationale:
+        description: 'Why this solution was deployed'
+        required: false
+        type: string
+      documentationURL:
+        description: 'Link to documentation'
+        required: false
+        type: string
+      resources:
+        description: 'JSON array of resources'
+        required: true
+        type: string
+      port_run_id:
+        description: 'Port action run ID'
+        required: true
+        type: string
+
+jobs:
+  create-solution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Report running status to Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ inputs.port_run_id }}
+          status: "RUNNING"
+          logMessage: "Creating Solution ${{ inputs.name }} in namespace ${{ inputs.namespace }}"
+
+      - name: Create Solution manifest
+        env:
+          SOLUTION_NAME: ${{ inputs.name }}
+          SOLUTION_NAMESPACE: ${{ inputs.namespace }}
+          SOLUTION_INTENT: ${{ inputs.intent }}
+          SOLUTION_RATIONALE: ${{ inputs.rationale }}
+          SOLUTION_DOC_URL: ${{ inputs.documentationURL }}
+          SOLUTION_RESOURCES: ${{ inputs.resources }}
+        run: |
+          mkdir -p resources/$SOLUTION_NAMESPACE
+
+          cat > resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml << EOF
+          apiVersion: dot-ai.devopstoolkit.live/v1alpha1
+          kind: Solution
+          metadata:
+            name: $SOLUTION_NAME
+            namespace: $SOLUTION_NAMESPACE
+          spec:
+            intent: "$SOLUTION_INTENT"
+            context:
+              createdBy: "port-action"
+          EOF
+
+          if [ -n "$SOLUTION_RATIONALE" ]; then
+            yq -i '.spec.context.rationale = env(SOLUTION_RATIONALE)' resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml
+          fi
+
+          if [ -n "$SOLUTION_DOC_URL" ]; then
+            yq -i '.spec.documentationURL = env(SOLUTION_DOC_URL)' resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml
+          fi
+
+          echo "$SOLUTION_RESOURCES" | yq -P -o=yaml > /tmp/resources.yaml
+          yq -i '.spec.resources = load("/tmp/resources.yaml")' resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add resources/
+          git commit -m "Add Solution ${{ inputs.name }} in ${{ inputs.namespace }}"
+          git push
+
+      - name: Report success to Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ inputs.port_run_id }}
+          status: "SUCCESS"
+          logMessage: "Solution ${{ inputs.name }} created. Argo CD will sync it to the cluster."
+
+      - name: Report failure to Port
+        if: failure()
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ inputs.port_run_id }}
+          status: "FAILURE"
+          logMessage: "Failed to create Solution ${{ inputs.name }}"
