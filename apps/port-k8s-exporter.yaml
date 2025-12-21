@@ -37,6 +37,10 @@ spec:
                           ready: '[.status.conditions[] | select(.type == "Ready")][0].status // "Unknown"'
                           rationale: .spec.context.rationale
                           createdBy: .spec.context.createdBy
+                          documentationURL: .spec.documentationURL
+                          patterns: .spec.context.patterns
+                          policies: .spec.context.policies
+                          resources: .spec.resources
               - kind: dot-ai.devopstoolkit.live/v1alpha1/remediationpolicies
                 selector:
                   query: "true"
@@ -50,8 +54,14 @@ spec:
                           namespace: .metadata.namespace
                           mode: .spec.mode
                           mcpEndpoint: .spec.mcpEndpoint
+                          mcpTool: .spec.mcpTool
+                          mcpAuthSecretRef: .spec.mcpAuthSecretRef
                           confidenceThreshold: .spec.confidenceThreshold
                           maxRiskLevel: .spec.maxRiskLevel
+                          eventSelectors: .spec.eventSelectors
+                          notifications: .spec.notifications
+                          persistence: .spec.persistence
+                          rateLimiting: .spec.rateLimiting
                           ready: '[.status.conditions[] | select(.type == "Ready")][0].status // "Unknown"'
               - kind: dot-ai.devopstoolkit.live/v1alpha1/resourcesyncconfigs
                 selector:
@@ -65,7 +75,9 @@ spec:
                         properties:
                           namespace: .metadata.namespace
                           mcpEndpoint: .spec.mcpEndpoint
+                          mcpAuthSecretRef: .spec.mcpAuthSecretRef
                           resyncIntervalMinutes: .spec.resyncIntervalMinutes
+                          debounceWindowSeconds: .spec.debounceWindowSeconds
                           watchedResourceTypes: .status.watchedResourceTypes
                           totalResourcesSynced: .status.totalResourcesSynced
                           active: .status.active
