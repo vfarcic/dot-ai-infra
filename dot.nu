@@ -18,7 +18,7 @@ def "main setup" [] {
 
     main apply certmanager
 
-    main apply ingress traefik --provider google
+    # main apply ingress traefik --provider google
 
     kubectl create namespace infra
 
