@@ -17,6 +17,58 @@ spec:
           useExistingSecret: true
           name: port-credentials
         portBaseUrl: https://api.getport.io
+        configMap:
+          config: |
+            resources:
+              - kind: dot-ai.devopstoolkit.live/v1alpha1/solutions
+                selector:
+                  query: "true"
+                port:
+                  entity:
+                    mappings:
+                      - identifier: .metadata.name + "-" + .metadata.namespace
+                        title: .metadata.name
+                        blueprint: '"solution"'
+                        properties:
+                          intent: .spec.intent
+                          namespace: .metadata.namespace
+                          resourceCount: .status.resources.ready
+                          ready: '[.status.conditions[] | select(.type == "Ready")][0].status // "Unknown"'
+                          rationale: .spec.context.rationale
+                          createdBy: .spec.context.createdBy
+              - kind: dot-ai.devopstoolkit.live/v1alpha1/remediationpolicies
+                selector:
+                  query: "true"
+                port:
+                  entity:
+                    mappings:
+                      - identifier: .metadata.name + "-" + .metadata.namespace
+                        title: .metadata.name
+                        blueprint: '"remediationPolicy"'
+                        properties:
+                          namespace: .metadata.namespace
+                          mode: .spec.mode
+                          mcpEndpoint: .spec.mcpEndpoint
+                          confidenceThreshold: .spec.confidenceThreshold
+                          maxRiskLevel: .spec.maxRiskLevel
+                          ready: '[.status.conditions[] | select(.type == "Ready")][0].status // "Unknown"'
+              - kind: dot-ai.devopstoolkit.live/v1alpha1/resourcesyncconfigs
+                selector:
+                  query: "true"
+                port:
+                  entity:
+                    mappings:
+                      - identifier: .metadata.name + "-" + .metadata.namespace
+                        title: .metadata.name
+                        blueprint: '"resourceSyncConfig"'
+                        properties:
+                          namespace: .metadata.namespace
+                          mcpEndpoint: .spec.mcpEndpoint
+                          resyncIntervalMinutes: .spec.resyncIntervalMinutes
+                          watchedResourceTypes: .status.watchedResourceTypes
+                          totalResourcesSynced: .status.totalResourcesSynced
+                          active: .status.active
+                          ready: '[.status.conditions[] | select(.type == "Ready")][0].status // "Unknown"'
   destination:
     server: https://kubernetes.default.svc
     namespace: port-k8s-exporter
