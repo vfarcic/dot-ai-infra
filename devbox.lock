@@ -77,6 +77,54 @@
       "last_modified": "2025-12-03T20:43:00Z",
       "resolved": "github:NixOS/nixpkgs/ebc94f855ef25347c314258c10393a92794e7ab9?lastModified=1764794580&narHash=sha256-UMVihg0OQ980YqmOAPz%2BzkuCEb9hpE5Xj2v%2BZGNjQ%2BM%3D"
     },
+    "kubectl-tree@0.4.6": {
+      "last_modified": "2025-11-23T21:50:36Z",
+      "resolved": "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261#kubectl-tree",
+      "source": "devbox-search",
+      "version": "0.4.6",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mkzns932kkkacphbjvjljp7lp5q4viam-kubectl-tree-0.4.6",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/mkzns932kkkacphbjvjljp7lp5q4viam-kubectl-tree-0.4.6"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/lqcmhw8n3hl20xdmhd2csg64ijh6ybns-kubectl-tree-0.4.6",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/lqcmhw8n3hl20xdmhd2csg64ijh6ybns-kubectl-tree-0.4.6"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2vrj7m3hbxw68vhg16xrb4w0qmh4w9qb-kubectl-tree-0.4.6",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2vrj7m3hbxw68vhg16xrb4w0qmh4w9qb-kubectl-tree-0.4.6"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/miw518dy0anqqsj159j76n5kw1cvb4k8-kubectl-tree-0.4.6",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/miw518dy0anqqsj159j76n5kw1cvb4k8-kubectl-tree-0.4.6"
+        }
+      }
+    },
     "kubernetes-helm@3.19.1": {
       "last_modified": "2025-11-23T21:50:36Z",
       "resolved": "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261#kubernetes-helm",
