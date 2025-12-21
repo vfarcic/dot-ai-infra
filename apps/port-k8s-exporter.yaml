@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: port-k8s-exporter
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://port-labs.github.io/helm-charts
+    chart: port-k8s-exporter
+    targetRevision: 0.3.26
+    helm:
+      valuesObject:
+        secret:
+          useExistingSecret: true
+          name: port-credentials
+        portBaseUrl: https://api.getport.io
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: port-k8s-exporter
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
