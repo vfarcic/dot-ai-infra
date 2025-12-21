@@ -58,9 +58,9 @@ jobs:
           SOLUTION_DOC_URL: ${{ inputs.documentationURL }}
           SOLUTION_RESOURCES: ${{ inputs.resources }}
         run: |
-          mkdir -p resources/$SOLUTION_NAMESPACE
+          mkdir -p apps
 
-          cat > resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml << EOF
+          cat > apps/solution-$SOLUTION_NAME.yaml << EOF
           apiVersion: dot-ai.devopstoolkit.live/v1alpha1
           kind: Solution
           metadata:
@@ -73,21 +73,21 @@ jobs:
           EOF
 
           if [ -n "$SOLUTION_RATIONALE" ]; then
-            yq -i '.spec.context.rationale = env(SOLUTION_RATIONALE)' resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml
+            yq -i '.spec.context.rationale = env(SOLUTION_RATIONALE)' apps/solution-$SOLUTION_NAME.yaml
           fi
 
           if [ -n "$SOLUTION_DOC_URL" ]; then
-            yq -i '.spec.documentationURL = env(SOLUTION_DOC_URL)' resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml
+            yq -i '.spec.documentationURL = env(SOLUTION_DOC_URL)' apps/solution-$SOLUTION_NAME.yaml
           fi
 
           echo "$SOLUTION_RESOURCES" | yq -P -o=yaml > /tmp/resources.yaml
-          yq -i '.spec.resources = load("/tmp/resources.yaml")' resources/$SOLUTION_NAMESPACE/solution-$SOLUTION_NAME.yaml
+          yq -i '.spec.resources = load("/tmp/resources.yaml")' apps/solution-$SOLUTION_NAME.yaml
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add resources/
+          git add apps/
           git commit -m "Add Solution ${{ inputs.name }} in ${{ inputs.namespace }}"
           git push
 
