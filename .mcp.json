@@ -6,6 +6,10 @@
       "headers": {
         "Authorization": "Bearer ${DOT_AI_AUTH_TOKEN}"
       }
+    },
+    "port-vscode-eu": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.port.io/v1"]
     }
   }
 }
