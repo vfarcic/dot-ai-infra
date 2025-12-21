@@ -17,6 +17,7 @@ spec:
           useExistingSecret: true
           name: port-credentials
         portBaseUrl: https://api.getport.io
+        overwriteConfigurationOnRestart: true
         configMap:
           config: |
             resources:
