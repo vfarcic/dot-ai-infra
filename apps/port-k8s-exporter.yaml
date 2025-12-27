@@ -35,7 +35,8 @@ spec:
     helm:
       valuesObject:
         secret:
-          create: false
+          useExistingSecret: true
+          name: port-credentials
         portBaseUrl: https://api.port.io
         stateKey: dot-ai
         eventListener:
@@ -43,16 +44,6 @@ spec:
         extraEnv:
           - name: CLUSTER_NAME
             value: dot-ai
-          - name: PORT_CLIENT_ID
-            valueFrom:
-              secretKeyRef:
-                name: port-credentials
-                key: PORT_CLIENT_ID
-          - name: PORT_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: port-credentials
-                key: PORT_CLIENT_SECRET
   destination:
     server: https://kubernetes.default.svc
     namespace: port-k8s-exporter
