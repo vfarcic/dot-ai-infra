@@ -176,6 +176,7 @@ spec:
                         relations:
                           Namespace: .metadata.namespace + "-" + env.CLUSTER_NAME
                           Workload: .metadata.ownerReferences[0].name as $owner | if .metadata.ownerReferences[0].kind == "ReplicaSet" then null else ($owner + "-" + .metadata.ownerReferences[0].kind + "-" + .metadata.namespace + "-" + env.CLUSTER_NAME) end
+                          ReplicaSet: .metadata.ownerReferences[0].name as $owner | if .metadata.ownerReferences[0].kind == "ReplicaSet" then ($owner + "-" + .metadata.namespace + "-" + env.CLUSTER_NAME) else null end
               # Services
               - kind: v1/services
                 selector:
@@ -195,6 +196,7 @@ spec:
                           creationTimestamp: .metadata.creationTimestamp
                         relations:
                           Namespace: .metadata.namespace + "-" + env.CLUSTER_NAME
+                          Workload: (.spec.selector.app // .spec.selector["app.kubernetes.io/name"] // null) as $app | if $app then [($app + "-Deployment-" + .metadata.namespace + "-" + env.CLUSTER_NAME)] else [] end
               # Ingresses
               - kind: networking.k8s.io/v1/ingresses
                 selector:
@@ -214,6 +216,7 @@ spec:
                           creationTimestamp: .metadata.creationTimestamp
                         relations:
                           Namespace: .metadata.namespace + "-" + env.CLUSTER_NAME
+                          Service: .metadata.namespace as $ns | [.spec.rules[].http.paths[].backend.service.name] | unique | map(. + "-" + $ns + "-" + env.CLUSTER_NAME)
               # Gateway API - Gateways
               - kind: gateway.networking.k8s.io/v1/gateways
                 selector:
@@ -232,6 +235,7 @@ spec:
                           creationTimestamp: .metadata.creationTimestamp
                         relations:
                           Namespace: .metadata.namespace + "-" + env.CLUSTER_NAME
+                          Cluster: env.CLUSTER_NAME
               # Gateway API - HTTPRoutes
               - kind: gateway.networking.k8s.io/v1/httproutes
                 selector:
@@ -250,7 +254,8 @@ spec:
                           creationTimestamp: .metadata.creationTimestamp
                         relations:
                           Namespace: .metadata.namespace + "-" + env.CLUSTER_NAME
-                          Gateway: "[.spec.parentRefs[] | .name + \"-\" + (.namespace // .metadata.namespace) + \"-\" + env.CLUSTER_NAME]"
+                          Gateway: .metadata.namespace as $ns | [.spec.parentRefs[] | .name + "-" + (.namespace // $ns) + "-" + env.CLUSTER_NAME]
+                          Service: .metadata.namespace as $ns | [.spec.rules[].backendRefs[]? | select(.kind == "Service" or .kind == null) | .name] | unique | map(. + "-" + $ns + "-" + env.CLUSTER_NAME)
               # CapabilityScanConfig CRD
               - kind: dot-ai.devopstoolkit.live/v1alpha1/capabilityscanconfigs
                 selector:
