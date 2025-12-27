@@ -59,7 +59,35 @@ kubectl delete namespace port-k8s-exporter
 
 ---
 
-# Part 2: Delete Port Self-Service Actions
+# Part 2: Delete Port Folders, Blueprints, and Entities (User Action Required)
+
+The easiest way to delete all custom blueprints and their entities is to delete the Port catalog folder(s) created during setup. This cascades deletion to all blueprints and entities inside.
+
+**Steps:**
+1. Go to [Port Catalog](https://app.getport.io/organization/catalog)
+2. Find the folder(s) created during setup (e.g., "Kubernetes Resources", "CRDs", "GitHub")
+3. Right-click on the folder → **Delete**
+4. Confirm deletion - this will delete all blueprints and entities inside
+
+**If blueprints are not in folders**, delete them individually:
+1. Go to [DevPortal Builder](https://app.getport.io/settings/data-model)
+2. For each custom blueprint, click "⋮" menu → **Delete All [Blueprint Name]**
+3. This deletes all entities AND the blueprint in one action
+
+**Do NOT delete these default blueprints:**
+- `cluster`
+- `namespace`
+- `workload`
+
+**Custom blueprints to delete:**
+- K8s resources: pod, service, replicaset, ingress, gateway, httproute
+- CRDs: capabilityscanconfig, remediationpolicy, resourcesyncconfig, solution, k8s-resource
+- GitHub: githubWorkflow, githubWorkflowRun, githubPullRequest
+- Other: prompt
+
+---
+
+# Part 3: Delete Port Self-Service Actions
 
 Delete all self-service actions created for CRDs.
 
@@ -69,38 +97,7 @@ Delete all self-service actions created for CRDs.
 
 ---
 
-# Part 3: Delete Port Entities
-
-Delete entities before their blueprints.
-
-1. Use `mcp__port-vscode-eu__list_entities` for each custom blueprint
-2. Delete all entities using `mcp__port-vscode-eu__delete_entity`
-
-**Order of deletion** (dependents first):
-- Entities with relations to other custom blueprints (e.g., k8s-resource → solution)
-- K8s resource entities (pods, services, replicasets, etc.)
-- CRD entities (capabilityscanconfig, remediationpolicy, etc.)
-
----
-
-# Part 4: Delete Port Blueprints
-
-Delete blueprints created during setup.
-
-**Do NOT delete these default blueprints:**
-- `cluster`
-- `namespace`
-- `workload`
-
-**Delete custom blueprints** (use `mcp__port-vscode-eu__delete_blueprint`):
-- K8s resources: pod, service, replicaset, ingress, gateway, httproute
-- CRDs: capabilityscanconfig, remediationpolicy, resourcesyncconfig, solution, k8s-resource
-- GitHub: githubWorkflow, githubWorkflowRun, githubPullRequest
-- Other: prompt
-
----
-
-# Part 5: Delete GitHub Integration Mapping (Optional)
+# Part 4: Delete GitHub Integration Mapping (Optional)
 
 If user wants to remove GitHub integration:
 
@@ -112,7 +109,7 @@ If user wants to remove GitHub integration:
 
 ---
 
-# Part 6: Delete GitHub Workflows and Secrets
+# Part 5: Delete GitHub Workflows and Secrets
 
 ## Delete Workflow Files
 
@@ -132,22 +129,12 @@ Commit and push the deletions.
 
 ---
 
-# Part 7: Delete Local Manifest Files
+# Part 6: Delete Local Manifest Files
 
 Remove manifest files from the configured directory:
 
 1. Delete Port-related manifests (e.g., `apps/port-k8s-exporter.yaml`)
 2. Commit and push the deletions
-
----
-
-# Part 8: Clean Up Port Catalog Folders (Optional)
-
-If folders were created (User action required):
-
-1. Go to [Port Catalog](https://app.getport.io/organization/catalog)
-2. Move pages out of folders first
-3. Right-click folder → Delete
 
 ---
 
