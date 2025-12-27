@@ -341,6 +341,18 @@ spec:
                           creationTimestamp: .metadata.creationTimestamp
                         relations:
                           Namespace: .metadata.namespace + "-" + env.CLUSTER_NAME
+                      # Create k8s-resource entities for each resource in spec.resources
+                      - itemsToParse: .spec.resources
+                        identifier: .item.kind + "-" + .item.name + "-" + (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
+                        title: .item.kind + "/" + .item.name
+                        blueprint: '"k8s-resource"'
+                        properties:
+                          kind: .item.kind
+                          apiVersion: .item.apiVersion
+                          resourceName: .item.name
+                        relations:
+                          Namespace: (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
+                          Solution: .metadata.name + "-" + .metadata.namespace + "-" + env.CLUSTER_NAME
   destination:
     server: https://kubernetes.default.svc
     namespace: port-k8s-exporter
