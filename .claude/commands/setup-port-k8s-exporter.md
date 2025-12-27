@@ -1,6 +1,6 @@
-# Setup Port K8s Exporter
+# Setup Port Integrations
 
-Set up Port's Kubernetes exporter to sync cluster resources to Port.io using ArgoCD and External Secrets Operator (ESO).
+Set up Port integrations to sync Kubernetes resources and GitHub Actions to Port.io.
 
 ## Prerequisites
 - ArgoCD installed and configured
@@ -8,6 +8,11 @@ Set up Port's Kubernetes exporter to sync cluster resources to Port.io using Arg
 - Port.io account with credentials stored in GCP Secret Manager:
   - `port-client-id`
   - `port-client-secret`
+- GitHub account/organization for GitHub Actions integration
+
+---
+
+# Part 1: Kubernetes Exporter
 
 ## Steps
 
@@ -134,3 +139,101 @@ This creates entities for ALL resources managed by a Solution (Deployments, Serv
 - If new resources aren't syncing, restart the exporter: `kubectl rollout restart deployment/port-k8s-exporter -n port-k8s-exporter`
 - Check configMap is updated: `kubectl get configmap port-k8s-exporter -n port-k8s-exporter -o yaml`
 - Verify blueprints exist in Port before adding mappings
+
+---
+
+# Part 2: GitHub Actions Integration
+
+Sync GitHub workflows and workflow runs to Port for CI/CD visibility.
+
+## Steps
+
+### 1. Install Port's GitHub App
+
+1. Go to Port's Data Sources page: https://app.port.io/settings/data-sources
+2. Click "+ Data source" → select "GitHub"
+3. Install the GitHub App on your GitHub account/organization
+4. Select the repositories you want to sync
+
+### 2. Create GitHub Blueprints
+
+Create these blueprints using Port MCP tools:
+
+**githubWorkflow:**
+- path (string) - workflow file path
+- status (string/enum) - active, deleted, disabled_fork, disabled_inactivity, disabled_manually
+- createdAt (date-time)
+- updatedAt (date-time)
+- link (url)
+- Relation to repository/service blueprint
+
+**githubWorkflowRun:**
+- name (string)
+- triggeringActor (string)
+- status (string) - queued, in_progress, completed
+- conclusion (string) - success, failure, cancelled, skipped
+- createdAt, runStartedAt, updatedAt (date-time)
+- runNumber, runAttempt (number)
+- link (url)
+- Relation to githubWorkflow
+
+### 3. Configure GitHub Integration Mapping
+
+In Port's Data Sources, select the GitHub integration and add the mapping:
+
+```yaml
+resources:
+  - kind: workflow
+    selector:
+      query: 'true'
+    port:
+      entity:
+        mappings:
+          identifier: .repo + (.id|tostring)
+          title: .name
+          blueprint: '"githubWorkflow"'
+          properties:
+            path: .path
+            status: .state
+            createdAt: .created_at
+            updatedAt: .updated_at
+            link: .html_url
+          relations:
+            repository: .repo
+  - kind: workflow-run
+    selector:
+      query: "true"
+    port:
+      entity:
+        mappings:
+          identifier: .repository.name + "/" + (.id|tostring)
+          title: .display_title
+          blueprint: '"githubWorkflowRun"'
+          properties:
+            name: .name
+            triggeringActor: .triggering_actor.login
+            status: .status
+            conclusion: .conclusion
+            createdAt: .created_at
+            runStartedAt: .run_started_at
+            updatedAt: .updated_at
+            runNumber: .run_number
+            runAttempt: .run_attempt
+            link: .html_url
+          relations:
+            workflow: .repository.name + (.workflow_id|tostring)
+```
+
+### 4. Verify GitHub Integration
+
+1. Click "Save & Resync" in the integration configuration
+2. Check that workflows and workflow runs appear in Port
+3. Verify relations between workflow runs and workflows
+
+## Optional: Link GitHub to Kubernetes
+
+To connect GitHub workflows to Kubernetes workloads:
+
+1. Add a `repository` relation to the `workload` blueprint
+2. Update K8s exporter mappings to extract repository info from labels/annotations
+3. This enables tracing from deployment → workflow run → workflow → repository
