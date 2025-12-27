@@ -43,6 +43,9 @@ Create these blueprints using Port MCP tools:
 - `resourcesyncconfig` - debounceWindowSeconds, resyncIntervalMinutes, mcpEndpoint, mcpAuthSecretRef, active, watchedResourceTypes, totalResourcesSynced, syncErrors, lastSyncTime, lastResyncTime
 - `solution` - intent, context, resources, labels
 
+**Generic Resource Blueprint:**
+- `k8s-resource` - kind, apiVersion, resourceName (for tracking arbitrary K8s resources referenced by Solutions)
+
 All blueprints should have:
 - Relation to `namespace` blueprint
 - `creationTimestamp` property
@@ -85,7 +88,34 @@ In the Helm values `configMap.config`, define mappings for:
 - `dot-ai.devopstoolkit.live/v1alpha1/resourcesyncconfigs` → resourcesyncconfig blueprint
 - `dot-ai.devopstoolkit.live/v1alpha1/solutions` → solution blueprint
 
-### 4. Push and Verify
+### 5. Map Solution Resources to Generic Blueprint
+
+Solutions reference arbitrary K8s resources in `spec.resources`. Use `itemsToParse` to create a `k8s-resource` entity for each referenced resource:
+
+```yaml
+# K8s Resources from Solution spec.resources
+- kind: dot-ai.devopstoolkit.live/v1alpha1/solutions
+  selector:
+    query: "true"
+  port:
+    itemsToParse: .spec.resources
+    entity:
+      mappings:
+        - identifier: .item.kind + "-" + .item.name + "-" + (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
+          title: .item.kind + "/" + .item.name
+          blueprint: '"k8s-resource"'
+          properties:
+            kind: .item.kind
+            apiVersion: .item.apiVersion
+            resourceName: .item.name
+          relations:
+            Namespace: (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
+            Solution: .metadata.name + "-" + .metadata.namespace + "-" + env.CLUSTER_NAME
+```
+
+This creates entities for ALL resources managed by a Solution (Deployments, Services, Secrets, ConfigMaps, Certificates, etc.) with a relation back to the Solution, enabling visualization of the complete resource tree in Port's Graph View.
+
+### 6. Push and Verify
 
 1. Commit and push to Git
 2. Wait for ArgoCD to sync
