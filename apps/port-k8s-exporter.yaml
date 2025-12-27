@@ -341,9 +341,15 @@ spec:
                           creationTimestamp: .metadata.creationTimestamp
                         relations:
                           Namespace: .metadata.namespace + "-" + env.CLUSTER_NAME
-                      # Create k8s-resource entities for each resource in spec.resources
-                      - itemsToParse: .spec.resources
-                        identifier: .item.kind + "-" + .item.name + "-" + (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
+              # K8s Resources from Solution spec.resources
+              - kind: dot-ai.devopstoolkit.live/v1alpha1/solutions
+                selector:
+                  query: "true"
+                port:
+                  itemsToParse: .spec.resources
+                  entity:
+                    mappings:
+                      - identifier: .item.kind + "-" + .item.name + "-" + (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
                         title: .item.kind + "/" + .item.name
                         blueprint: '"k8s-resource"'
                         properties:
