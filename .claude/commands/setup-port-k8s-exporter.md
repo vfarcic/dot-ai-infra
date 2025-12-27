@@ -424,3 +424,285 @@ for page in capabilityscanconfigs remediationpolicies resourcesyncconfigs soluti
     -d '{"parent": "kubernetes_cr_ds", "after": null}'
 done
 ```
+
+---
+
+# Part 4: Self-Service Actions for CRDs
+
+Create Port self-service actions that trigger GitHub workflows to manage CRD manifests via GitOps.
+
+## Overview
+
+This setup enables users to create, update, and delete CRD resources directly from Port's Self-Service tab. Actions trigger GitHub workflows that:
+1. Create/update/delete YAML manifests in the `./apps/` directory
+2. Commit and push changes to Git
+3. ArgoCD syncs the changes to the cluster
+4. Report status back to Port
+
+## Prerequisites
+
+Add these GitHub repository secrets:
+- `PORT_CLIENT_ID` - Port client ID
+- `PORT_CLIENT_SECRET` - Port client secret
+
+## Step 1: Create GitHub Workflows
+
+Create workflow files in `.github/workflows/` for each CRD:
+
+### manage-capabilityscanconfig.yaml
+```yaml
+name: Manage CapabilityScanConfig
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options: [create, update, delete]
+      name:
+        description: 'Resource name'
+        required: true
+        type: string
+      namespace:
+        description: 'Kubernetes namespace'
+        required: true
+        type: string
+        default: 'dot-ai'
+      mcp_endpoint:
+        description: 'MCP endpoint URL'
+        required: false
+        type: string
+        default: 'http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/manageOrgData'
+      mcp_collection:
+        description: 'MCP collection name'
+        required: false
+        type: string
+      auth_secret_name:
+        description: 'Auth secret name'
+        required: false
+        type: string
+        default: 'dot-ai-secrets'
+      auth_secret_key:
+        description: 'Auth secret key'
+        required: false
+        type: string
+        default: 'auth-token'
+      debounce_window_seconds:
+        description: 'Debounce window in seconds'
+        required: false
+        type: number
+      port_run_id:
+        description: 'Port action run ID'
+        required: true
+        type: string
+```
+
+Similar workflows for:
+- `manage-remediationpolicy.yaml` - includes mode, event selectors, Slack notifications, rate limiting
+- `manage-resourcesyncconfig.yaml` - includes debounce window, resync interval
+- `manage-solution.yaml` - includes intent, rationale, documentation URL, resources array
+
+### Workflow Pattern
+
+Each workflow follows this pattern:
+1. **Checkout** - Clone the repository
+2. **Report running** - Update Port run status to "RUNNING"
+3. **Create/Update manifest** - Generate YAML using heredoc + sed/yq
+4. **Delete manifest** - Remove the file (for delete action)
+5. **Commit and push** - Git commit and push changes
+6. **Report success/failure** - Update Port run status
+
+```yaml
+- name: Report running status to Port
+  uses: port-labs/port-github-action@v1
+  with:
+    clientId: ${{ secrets.PORT_CLIENT_ID }}
+    clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+    operation: PATCH_RUN
+    runId: ${{ inputs.port_run_id }}
+    status: "RUNNING"
+    logMessage: "${{ inputs.action }} resource ${{ inputs.name }}"
+
+- name: Commit and push
+  run: |
+    git config user.name "github-actions[bot]"
+    git config user.email "github-actions[bot]@users.noreply.github.com"
+    git add -A apps/
+    if git diff --staged --quiet; then
+      echo "No changes to commit"
+    else
+      git commit -m "${{ inputs.action }} ResourceType ${{ inputs.name }}"
+      git push
+    fi
+
+- name: Report success to Port
+  uses: port-labs/port-github-action@v1
+  with:
+    clientId: ${{ secrets.PORT_CLIENT_ID }}
+    clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+    operation: PATCH_RUN
+    runId: ${{ inputs.port_run_id }}
+    status: "SUCCESS"
+    logMessage: "Resource ${{ inputs.name }} ${{ inputs.action }}d successfully"
+
+- name: Report failure to Port
+  if: failure()
+  uses: port-labs/port-github-action@v1
+  with:
+    clientId: ${{ secrets.PORT_CLIENT_ID }}
+    clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+    operation: PATCH_RUN
+    runId: ${{ inputs.port_run_id }}
+    status: "FAILURE"
+    logMessage: "Failed to ${{ inputs.action }} resource ${{ inputs.name }}"
+```
+
+## Step 2: Create Port Self-Service Actions
+
+Create 3 actions per CRD (create, update, delete) using Port MCP tools or REST API.
+
+### Action Types
+- **CREATE** - Creates new resources (no entity context)
+- **DAY-2** - Updates existing resources (has entity context)
+- **DELETE** - Deletes resources (has entity context)
+
+### Example: Create Action (CapabilityScanConfig)
+
+```json
+{
+  "identifier": "create_capabilityscanconfig",
+  "title": "Create CapabilityScanConfig",
+  "trigger": {
+    "type": "self-service",
+    "operation": "CREATE",
+    "blueprintIdentifier": "capabilityscanconfig",
+    "userInputs": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "Resource name"
+        },
+        "namespace": {
+          "type": "string",
+          "title": "Namespace",
+          "default": "dot-ai"
+        },
+        "mcp_endpoint": {
+          "type": "string",
+          "title": "MCP Endpoint",
+          "default": "http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/manageOrgData"
+        }
+        // ... additional properties
+      },
+      "required": ["name", "namespace"]
+    }
+  },
+  "invocationMethod": {
+    "type": "GITHUB",
+    "org": "<github-org>",
+    "repo": "<github-repo>",
+    "workflow": "manage-capabilityscanconfig.yaml",
+    "workflowInputs": {
+      "action": "create",
+      "name": "{{ .inputs.name }}",
+      "namespace": "{{ .inputs.namespace }}",
+      "mcp_endpoint": "{{ .inputs.mcp_endpoint }}",
+      "port_run_id": "{{ .run.id }}"
+    },
+    "reportWorkflowStatus": true
+  }
+}
+```
+
+### Example: Update Action (DAY-2)
+
+For update actions, pre-populate inputs with current entity values using `default.jqQuery`:
+
+```json
+{
+  "identifier": "update_capabilityscanconfig",
+  "title": "Update CapabilityScanConfig",
+  "trigger": {
+    "type": "self-service",
+    "operation": "DAY-2",
+    "blueprintIdentifier": "capabilityscanconfig",
+    "userInputs": {
+      "properties": {
+        "mcp_endpoint": {
+          "type": "string",
+          "title": "MCP Endpoint",
+          "default": {
+            "jqQuery": ".entity.properties.mcpEndpoint"
+          }
+        },
+        "mcp_collection": {
+          "type": "string",
+          "title": "MCP Collection",
+          "default": {
+            "jqQuery": ".entity.properties.mcpCollection // \"\""
+          }
+        },
+        "debounce_window_seconds": {
+          "type": "number",
+          "title": "Debounce Window (seconds)",
+          "default": {
+            "jqQuery": ".entity.properties.debounceWindowSeconds // 30"
+          }
+        }
+      }
+    }
+  },
+  "invocationMethod": {
+    "type": "GITHUB",
+    "org": "<github-org>",
+    "repo": "<github-repo>",
+    "workflow": "manage-capabilityscanconfig.yaml",
+    "workflowInputs": {
+      "action": "update",
+      "name": "{{ .entity.identifier | split(\"-\") | last }}",
+      "namespace": "{{ .entity.relations.Namespace | split(\"-\") | first }}",
+      "mcp_endpoint": "{{ .inputs.mcp_endpoint }}",
+      "port_run_id": "{{ .run.id }}"
+    },
+    "reportWorkflowStatus": true
+  }
+}
+```
+
+**Important:** Use `// "default_value"` in jqQuery for fallback values when the property might be null.
+
+### Key Template Expressions
+
+- `{{ .inputs.fieldName }}` - User input value
+- `{{ .run.id }}` - Port action run ID
+- `{{ .entity.identifier }}` - Entity identifier (for DAY-2/DELETE)
+- `{{ .entity.relations.Namespace }}` - Related entity identifier
+- `{{ .entity.identifier | split("-") | last }}` - Extract resource name from identifier
+
+### Actions to Create
+
+| Blueprint | Create Action | Update Action | Delete Action |
+|-----------|--------------|---------------|---------------|
+| capabilityscanconfig | create_capabilityscanconfig | update_capabilityscanconfig | delete_capabilityscanconfig |
+| remediationpolicy | create_remediationpolicy | update_remediationpolicy | delete_remediationpolicy |
+| resourcesyncconfig | create_resourcesyncconfig | update_resourcesyncconfig | delete_resourcesyncconfig |
+| solution | create_solution | update_solution | delete_solution |
+
+## Step 3: Verify Setup
+
+1. Go to Port Self-Service tab
+2. Verify all 12 actions appear
+3. Test creating a new resource
+4. Check GitHub Actions tab for workflow execution
+5. Verify manifest created in `./apps/` directory
+6. Check ArgoCD for sync status
+7. Verify entity appears in Port catalog
+
+## Troubleshooting
+
+- **Action not triggering workflow**: Verify GitHub App has workflow permissions
+- **Workflow failing**: Check GitHub Actions logs, verify secrets are set
+- **Entity not appearing**: Check K8s exporter logs, verify blueprint mapping exists
+- **Status not updating in Port**: Verify PORT_CLIENT_ID and PORT_CLIENT_SECRET secrets
