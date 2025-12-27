@@ -39,6 +39,7 @@ spec:
           name: port-credentials
         portBaseUrl: https://api.port.io
         stateKey: dot-ai
+        overwriteConfigurationOnRestart: true
         eventListener:
           type: POLLING
         extraEnv:
