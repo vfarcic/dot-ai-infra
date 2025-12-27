@@ -142,9 +142,9 @@ This creates entities for ALL resources managed by a Solution (Deployments, Serv
 
 ---
 
-# Part 2: GitHub Actions Integration
+# Part 2: GitHub Integration
 
-Sync GitHub workflows and workflow runs to Port for CI/CD visibility.
+Sync GitHub workflows, workflow runs, and pull requests to Port.
 
 ## Steps
 
@@ -154,10 +154,11 @@ Sync GitHub workflows and workflow runs to Port for CI/CD visibility.
 2. Click "+ Data source" → select "GitHub"
 3. Install the GitHub App on your GitHub account/organization
 4. Select the repositories you want to sync
+5. Ensure the app has permissions for: actions, checks, pull requests, and repository metadata
 
 ### 2. Create GitHub Blueprints
 
-Create these blueprints using Port MCP tools:
+Create these blueprints using Port MCP tools (note: `githubPullRequest` may already exist from onboarding):
 
 **githubWorkflow:**
 - path (string) - workflow file path
@@ -165,70 +166,165 @@ Create these blueprints using Port MCP tools:
 - createdAt (date-time)
 - updatedAt (date-time)
 - link (url)
-- Relation to repository/service blueprint
+- Relation to service blueprint
 
 **githubWorkflowRun:**
 - name (string)
 - triggeringActor (string)
-- status (string) - queued, in_progress, completed
-- conclusion (string) - success, failure, cancelled, skipped
+- status (string/enum) - queued, in_progress, completed, etc.
+- conclusion (string/enum) - success, failure, cancelled, etc.
 - createdAt, runStartedAt, updatedAt (date-time)
 - runNumber, runAttempt (number)
 - link (url)
 - Relation to githubWorkflow
 
-### 3. Configure GitHub Integration Mapping
+**githubPullRequest** (if not exists):
+- creator (string)
+- assignees (array)
+- reviewers (array)
+- status (enum) - open, closed, merged
+- closedAt, updatedAt, mergedAt (date-time)
+- link (url)
+- Relation to service blueprint
 
-In Port's Data Sources, select the GitHub integration and add the mapping:
+### 3. Configure GitHub Integration Mapping via API
 
-```yaml
-resources:
-  - kind: workflow
-    selector:
-      query: 'true'
-    port:
-      entity:
-        mappings:
-          identifier: .repo + (.id|tostring)
-          title: .name
-          blueprint: '"githubWorkflow"'
-          properties:
-            path: .path
-            status: .state
-            createdAt: .created_at
-            updatedAt: .updated_at
-            link: .html_url
-          relations:
-            repository: .repo
-  - kind: workflow-run
-    selector:
-      query: "true"
-    port:
-      entity:
-        mappings:
-          identifier: .repository.name + "/" + (.id|tostring)
-          title: .display_title
-          blueprint: '"githubWorkflowRun"'
-          properties:
-            name: .name
-            triggeringActor: .triggering_actor.login
-            status: .status
-            conclusion: .conclusion
-            createdAt: .created_at
-            runStartedAt: .run_started_at
-            updatedAt: .updated_at
-            runNumber: .run_number
-            runAttempt: .run_attempt
-            link: .html_url
-          relations:
-            workflow: .repository.name + (.workflow_id|tostring)
+The Port MCP tools don't include an `update_integration` tool, so use the Port REST API to configure the mapping.
+
+First, get the integration identifier:
+```bash
+# List integrations to find the GitHub one
+curl -s "https://api.getport.io/v1/integration" \
+  -H "Authorization: Bearer $PORT_TOKEN" | jq '.integrations[] | select(.integrationType == "GitHub")'
 ```
 
-### 4. Verify GitHub Integration
+Then update the integration config:
+```bash
+curl -X PATCH "https://api.getport.io/v1/integration/<INTEGRATION_ID>" \
+  -H "Authorization: Bearer $PORT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @github_mapping.json
+```
 
-1. Click "Save & Resync" in the integration configuration
-2. Check that workflows and workflow runs appear in Port
-3. Verify relations between workflow runs and workflows
+**github_mapping.json:**
+```json
+{
+  "config": {
+    "createMissingRelatedEntities": true,
+    "resources": [
+      {
+        "kind": "pull-request",
+        "selector": {
+          "query": "true",
+          "closedPullRequests": true
+        },
+        "port": {
+          "entity": {
+            "mappings": {
+              "identifier": ".head.repo.name + \"/\" + (.id|tostring)",
+              "title": ".title",
+              "blueprint": "\"githubPullRequest\"",
+              "properties": {
+                "creator": ".user.login",
+                "assignees": "[.assignees[].login]",
+                "reviewers": "[.requested_reviewers[].login]",
+                "status": "if .merged then \"merged\" elif .state == \"closed\" then \"closed\" else \"open\" end",
+                "closedAt": ".closed_at",
+                "updatedAt": ".updated_at",
+                "mergedAt": ".merged_at",
+                "link": ".html_url"
+              },
+              "relations": {
+                "service": ".head.repo.name"
+              }
+            }
+          }
+        }
+      },
+      {
+        "kind": "workflow",
+        "selector": {
+          "query": "true"
+        },
+        "port": {
+          "entity": {
+            "mappings": {
+              "identifier": ".repo + \"/\" + (.id|tostring)",
+              "title": ".name",
+              "blueprint": "\"githubWorkflow\"",
+              "properties": {
+                "path": ".path",
+                "status": ".state",
+                "createdAt": ".created_at",
+                "updatedAt": ".updated_at",
+                "link": ".html_url"
+              },
+              "relations": {
+                "repository": ".repo"
+              }
+            }
+          }
+        }
+      },
+      {
+        "kind": "workflow-run",
+        "selector": {
+          "query": "true"
+        },
+        "port": {
+          "entity": {
+            "mappings": {
+              "identifier": ".repository.name + \"/\" + (.id|tostring)",
+              "title": ".display_title",
+              "blueprint": "\"githubWorkflowRun\"",
+              "properties": {
+                "name": ".name",
+                "triggeringActor": ".triggering_actor.login",
+                "status": ".status",
+                "conclusion": ".conclusion",
+                "createdAt": ".created_at",
+                "runStartedAt": ".run_started_at",
+                "updatedAt": ".updated_at",
+                "runNumber": ".run_number",
+                "runAttempt": ".run_attempt",
+                "link": ".html_url"
+              },
+              "relations": {
+                "workflow": ".repository.name + \"/\" + (.workflow_id|tostring)"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+### 4. Trigger Resync
+
+After updating the config, trigger a resync:
+```bash
+curl -X PATCH "https://api.getport.io/v1/integration/<INTEGRATION_ID>" \
+  -H "Authorization: Bearer $PORT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### 5. Verify GitHub Integration
+
+1. Check integration logs for successful syncs
+2. Verify entities appear in Port catalog:
+   - GitHub Workflows
+   - GitHub Workflow Runs
+   - Pull Requests
+3. Verify relations between workflow runs → workflows
+
+## Important Notes
+
+- **closedPullRequests: true** - By default, Port only syncs open PRs. Add this to the pull-request selector to include closed/merged PRs.
+- **createMissingRelatedEntities: true** - Ensures related entities are created even if they don't exist yet.
+- The GitHub App must have the correct permissions enabled in GitHub (Settings → Applications → Configure).
 
 ## Optional: Link GitHub to Kubernetes
 
