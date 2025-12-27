@@ -1,0 +1,185 @@
+name: Manage RemediationPolicy
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - create
+          - update
+          - delete
+      name:
+        description: 'Resource name'
+        required: true
+        type: string
+      namespace:
+        description: 'Kubernetes namespace'
+        required: true
+        type: string
+        default: 'dot-ai'
+      mode:
+        description: 'Remediation mode (manual/automatic)'
+        required: false
+        type: string
+        default: 'manual'
+      mcp_endpoint:
+        description: 'MCP endpoint URL'
+        required: false
+        type: string
+        default: 'http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/remediate'
+      auth_secret_name:
+        description: 'Auth secret name'
+        required: false
+        type: string
+        default: 'dot-ai-secrets'
+      auth_secret_key:
+        description: 'Auth secret key'
+        required: false
+        type: string
+        default: 'auth-token'
+      event_selectors:
+        description: 'Event selectors (JSON array)'
+        required: false
+        type: string
+      slack_enabled:
+        description: 'Enable Slack notifications'
+        required: false
+        type: boolean
+        default: false
+      slack_channel:
+        description: 'Slack channel'
+        required: false
+        type: string
+      events_per_minute:
+        description: 'Rate limit: events per minute'
+        required: false
+        type: number
+        default: 15
+      cooldown_minutes:
+        description: 'Rate limit: cooldown minutes'
+        required: false
+        type: number
+        default: 60
+      port_run_id:
+        description: 'Port action run ID'
+        required: true
+        type: string
+
+jobs:
+  manage-resource:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Report running status to Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ inputs.port_run_id }}
+          status: "RUNNING"
+          logMessage: "${{ inputs.action }} RemediationPolicy ${{ inputs.name }} in namespace ${{ inputs.namespace }}"
+
+      - name: Create/Update manifest
+        if: inputs.action != 'delete'
+        env:
+          NAME: ${{ inputs.name }}
+          NAMESPACE: ${{ inputs.namespace }}
+          MODE: ${{ inputs.mode }}
+          MCP_ENDPOINT: ${{ inputs.mcp_endpoint }}
+          AUTH_SECRET_NAME: ${{ inputs.auth_secret_name }}
+          AUTH_SECRET_KEY: ${{ inputs.auth_secret_key }}
+          EVENT_SELECTORS: ${{ inputs.event_selectors }}
+          SLACK_ENABLED: ${{ inputs.slack_enabled }}
+          SLACK_CHANNEL: ${{ inputs.slack_channel }}
+          EVENTS_PER_MINUTE: ${{ inputs.events_per_minute }}
+          COOLDOWN_MINUTES: ${{ inputs.cooldown_minutes }}
+        run: |
+          mkdir -p apps
+
+          cat > apps/remediationpolicy-$NAME.yaml << 'EOF'
+          apiVersion: dot-ai.devopstoolkit.live/v1alpha1
+          kind: RemediationPolicy
+          metadata:
+            name: PLACEHOLDER_NAME
+            namespace: PLACEHOLDER_NAMESPACE
+          spec:
+            mode: PLACEHOLDER_MODE
+            mcpEndpoint: PLACEHOLDER_ENDPOINT
+            mcpAuthSecretRef:
+              name: PLACEHOLDER_SECRET_NAME
+              key: PLACEHOLDER_SECRET_KEY
+            rateLimiting:
+              eventsPerMinute: 15
+              cooldownMinutes: 60
+          EOF
+
+          sed -i "s|PLACEHOLDER_NAME|$NAME|g" apps/remediationpolicy-$NAME.yaml
+          sed -i "s|PLACEHOLDER_NAMESPACE|$NAMESPACE|g" apps/remediationpolicy-$NAME.yaml
+          sed -i "s|PLACEHOLDER_MODE|$MODE|g" apps/remediationpolicy-$NAME.yaml
+          sed -i "s|PLACEHOLDER_ENDPOINT|$MCP_ENDPOINT|g" apps/remediationpolicy-$NAME.yaml
+          sed -i "s|PLACEHOLDER_SECRET_NAME|$AUTH_SECRET_NAME|g" apps/remediationpolicy-$NAME.yaml
+          sed -i "s|PLACEHOLDER_SECRET_KEY|$AUTH_SECRET_KEY|g" apps/remediationpolicy-$NAME.yaml
+
+          # Update rate limiting
+          yq -i ".spec.rateLimiting.eventsPerMinute = $EVENTS_PER_MINUTE" apps/remediationpolicy-$NAME.yaml
+          yq -i ".spec.rateLimiting.cooldownMinutes = $COOLDOWN_MINUTES" apps/remediationpolicy-$NAME.yaml
+
+          # Add event selectors if provided
+          if [ -n "$EVENT_SELECTORS" ] && [ "$EVENT_SELECTORS" != "null" ]; then
+            echo "$EVENT_SELECTORS" | yq -P -o=yaml > /tmp/selectors.yaml
+            yq -i '.spec.eventSelectors = load("/tmp/selectors.yaml")' apps/remediationpolicy-$NAME.yaml
+          fi
+
+          # Add Slack notifications if enabled
+          if [ "$SLACK_ENABLED" = "true" ] && [ -n "$SLACK_CHANNEL" ]; then
+            yq -i '.spec.notifications.slack.enabled = true' apps/remediationpolicy-$NAME.yaml
+            yq -i '.spec.notifications.slack.channel = env(SLACK_CHANNEL)' apps/remediationpolicy-$NAME.yaml
+            yq -i '.spec.notifications.slack.webhookUrlSecretRef.name = "dot-ai-secrets"' apps/remediationpolicy-$NAME.yaml
+            yq -i '.spec.notifications.slack.webhookUrlSecretRef.key = "SLACK_WEBHOOK_URL"' apps/remediationpolicy-$NAME.yaml
+            yq -i '.spec.notifications.slack.notifyOnStart = true' apps/remediationpolicy-$NAME.yaml
+            yq -i '.spec.notifications.slack.notifyOnComplete = true' apps/remediationpolicy-$NAME.yaml
+          fi
+
+      - name: Delete manifest
+        if: inputs.action == 'delete'
+        run: |
+          rm -f apps/remediationpolicy-${{ inputs.name }}.yaml
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A apps/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "${{ inputs.action }} RemediationPolicy ${{ inputs.name }} in ${{ inputs.namespace }}"
+            git push
+          fi
+
+      - name: Report success to Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ inputs.port_run_id }}
+          status: "SUCCESS"
+          logMessage: "RemediationPolicy ${{ inputs.name }} ${{ inputs.action }}d successfully. ArgoCD will sync changes."
+
+      - name: Report failure to Port
+        if: failure()
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ inputs.port_run_id }}
+          status: "FAILURE"
+          logMessage: "Failed to ${{ inputs.action }} RemediationPolicy ${{ inputs.name }}"

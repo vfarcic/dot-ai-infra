@@ -333,3 +333,94 @@ To connect GitHub workflows to Kubernetes workloads:
 1. Add a `repository` relation to the `workload` blueprint
 2. Update K8s exporter mappings to extract repository info from labels/annotations
 3. This enables tracing from deployment → workflow run → workflow → repository
+
+---
+
+# Part 3: Organize Catalog with Folders
+
+Organize the Port catalog into logical groups using folders.
+
+## Step 1: Create Folders in Port UI
+
+Folder creation via REST API is not supported. Create folders manually:
+
+1. Go to the [Port Catalog](https://app.getport.io/organization/catalog)
+2. Click `+ New` → `New folder`
+3. Create these folders:
+
+| Folder Title | Auto-generated Identifier |
+|--------------|---------------------------|
+| GitHub | `git_hub` |
+| Kubernetes Core | `kubernetes_core` |
+| Kubernetes CRDs | `kubernetes_cr_ds` |
+
+**Note:** Identifiers are auto-generated using snake_case (spaces → underscores, lowercase).
+
+## Step 2: Move Pages into Folders via API
+
+After creating folders, use the REST API to move pages:
+
+```bash
+# Move a page into a folder
+curl -X PATCH "https://api.getport.io/v1/pages/<PAGE_ID>" \
+  -H "Authorization: Bearer $PORT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"parent": "<FOLDER_ID>", "after": null}'
+```
+
+**Important:** The `"after": null` field is required when moving pages to empty folders.
+
+### Pages to move:
+
+**GitHub folder (`git_hub`):**
+- githubWorkflows
+- githubWorkflowRuns
+- githubPullRequests
+
+**Kubernetes Core folder (`kubernetes_core`):**
+- clusters
+- namespaces
+- workloads
+- replicasets
+- pods
+- services
+- ingresses
+- gateways
+- httproutes
+
+**Kubernetes CRDs folder (`kubernetes_cr_ds`):**
+- capabilityscanconfigs
+- remediationpolicies
+- resourcesyncconfigs
+- solutions
+- k8s-resources
+
+## Automation Script
+
+```bash
+PORT_TOKEN="<your-token>"
+
+# GitHub pages
+for page in githubWorkflows githubWorkflowRuns githubPullRequests; do
+  curl -s -X PATCH "https://api.getport.io/v1/pages/$page" \
+    -H "Authorization: Bearer $PORT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"parent": "git_hub", "after": null}'
+done
+
+# Kubernetes Core pages
+for page in clusters namespaces workloads replicasets pods services ingresses gateways httproutes; do
+  curl -s -X PATCH "https://api.getport.io/v1/pages/$page" \
+    -H "Authorization: Bearer $PORT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"parent": "kubernetes_core", "after": null}'
+done
+
+# Kubernetes CRDs pages
+for page in capabilityscanconfigs remediationpolicies resourcesyncconfigs solutions k8s-resources; do
+  curl -s -X PATCH "https://api.getport.io/v1/pages/$page" \
+    -H "Authorization: Bearer $PORT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"parent": "kubernetes_cr_ds", "after": null}'
+done
+```
