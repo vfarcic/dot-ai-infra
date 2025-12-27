@@ -3,142 +3,121 @@
 Set up Port integrations to sync Kubernetes resources and GitHub Actions to Port.io.
 
 ## Prerequisites
-- ArgoCD installed and configured
-- ESO installed with ClusterSecretStore `gcp-secret-manager` configured
-- Port.io account with credentials stored in GCP Secret Manager:
-  - `port-client-id`
-  - `port-client-secret`
-- GitHub account/organization for GitHub Actions integration
+
+Check the following and instruct the user to install/configure if missing:
+
+- **kubectl** - installed and configured with cluster access
+- **helm** - installed (for checking chart versions)
+- **gh** - GitHub CLI installed and authenticated
+- **Environment variables** set:
+  - `PORT_CLIENT_ID`
+  - `PORT_CLIENT_SECRET`
+
+## General Guidelines
+
+- **Always check latest versions** of third-party tools (Helm charts, GitHub Actions, etc.) before creating manifests. Use `helm search repo` or check the official documentation.
+- **Consult Port MCP tools** when in doubt - use them to explore existing blueprints, entities, actions, and integrations.
+- **Validate each step** before moving to the next - verify resources are created, synced, and working as expected.
+- **User actions vs automated**: Some steps require user action (marked with "User action required") - present these as instructions. Other steps can be executed directly.
+
+---
+
+# Step 0: Discover Environment
+
+Before starting, discover what tools are available and gather configuration:
+
+1. **GitOps Tool**: Check for ArgoCD (`argocd` namespace) or Flux (`flux-system` namespace)
+2. **ESO**: Check for External Secrets Operator CRD and available ClusterSecretStores
+3. **Manifest directory**: Ask the user where manifests should be stored (e.g., `apps/`, `manifests/`, `k8s/`)
+
+| GitOps Tool | Deployment Method | Self-Service Actions |
+|-------------|-------------------|---------------------|
+| ArgoCD | ArgoCD Application manifests in Git | Commit YAML to Git → ArgoCD syncs |
+| Flux | Flux HelmRelease/Kustomization in Git | Commit YAML to Git → Flux syncs |
+| Neither | Manifests in Git + `kubectl apply` | Commit YAML to Git → `kubectl apply` |
+
+| ESO Status | Secrets Method |
+|------------|----------------|
+| Installed with ClusterSecretStore | Use ExternalSecret to pull from secret manager |
+| Not installed | Create Secret directly with `kubectl create secret` |
+
+**Note:** Always store manifests in Git for auditability, regardless of GitOps availability.
 
 ---
 
 # Part 1: Kubernetes Exporter
 
-## Steps
+## Step 1: Create Port Credentials Secret
 
-### 1. Create ArgoCD Application with ESO
+Create a Secret named `port-credentials` in the `port-k8s-exporter` namespace with keys `PORT_CLIENT_ID` and `PORT_CLIENT_SECRET`.
 
-Create `apps/port-k8s-exporter.yaml` with:
-- ExternalSecret to pull Port credentials from GCP Secret Manager
-- ArgoCD Application for the port-k8s-exporter Helm chart
+- **With ESO**: Create an ExternalSecret referencing the available ClusterSecretStore
+- **Without ESO**: Create the Secret directly with `kubectl create secret`
+
+## Step 2: Deploy the K8s Exporter
+
+Deploy the `port-k8s-exporter` Helm chart from `https://port-labs.github.io/helm-charts`.
 
 Key Helm values:
 - `secret.useExistingSecret: true` and `secret.name: port-credentials`
 - `overwriteConfigurationOnRestart: true` (forces use of configMap config)
-- `stateKey` and `CLUSTER_NAME` set to cluster identifier (e.g., "dot-ai")
-- `configMap.config` with resource mappings
+- `stateKey` and `extraEnv[].CLUSTER_NAME` set to cluster identifier
+- `configMap.config` with resource mappings (see Step 4)
 
-### 2. Create Blueprints in Port
+Deployment method based on discovery:
+- **ArgoCD**: Create ArgoCD Application manifest
+- **Flux**: Create HelmRepository + HelmRelease manifests
+- **Neither**: Run `helm install` then commit values to Git
 
-Create these blueprints using Port MCP tools:
+## Step 3: Create Blueprints in Port
 
-**Standard K8s Resources:**
-- `service` - type, clusterIP, ports, selector, labels
-- `pod` - phase, node, containers, labels, startTime
-- `ingress` - ingressClassName, hosts, rules, tls, labels
-- `replicaset` - replicas, availableReplicas, readyReplicas, selector, labels
+**Default blueprints** (always created by the exporter):
+- `cluster` (Port concept, not a K8s resource)
+- `namespace` (from namespaces)
+- `workload` (from deployments, daemonsets, statefulsets)
 
-**Gateway API:**
-- `gateway` - gatewayClassName, listeners, addresses, labels
-- `httproute` - hostnames, parentRefs, rules, labels
+**Discover and recommend:**
+1. Run `kubectl api-resources` to list all available resources
+2. Exclude resources already covered by defaults (namespaces, deployments, daemonsets, statefulsets)
+3. Present findings to the user with recommendations
+4. Let user select which additional resources to track
 
-**Custom CRDs (devopstoolkit.live):**
-- `capabilityscanconfig` - debounceWindowSeconds, mcpEndpoint, mcpCollection, mcpAuthSecretRef, lastScanTime, ready
-- `remediationpolicy` - mode, eventSelectors, mcpEndpoint, mcpTool, confidenceThreshold, maxRiskLevel, rateLimiting, notifications, ready
-- `resourcesyncconfig` - debounceWindowSeconds, resyncIntervalMinutes, mcpEndpoint, mcpAuthSecretRef, active, watchedResourceTypes, totalResourcesSynced, syncErrors, lastSyncTime, lastResyncTime
-- `solution` - intent, context, resources, labels
-
-**Generic Resource Blueprint:**
-- `k8s-resource` - kind, apiVersion, resourceName (for tracking arbitrary K8s resources referenced by Solutions)
-
-All blueprints should have:
+Create selected blueprints using Port MCP tools. All blueprints should have:
 - Relation to `namespace` blueprint
 - `creationTimestamp` property
 
-### 3. Configure Blueprint Relations
+## Step 4: Configure Resource Mappings
 
-Analyze all exported resources and establish meaningful relations between them based on Kubernetes resource relationships:
-- Examine ownerReferences in resource specs to link child resources to parents
-- Look at selector labels to connect Services to Workloads
-- Examine backend references in Ingress and HTTPRoute to link to Services
-- Consider parent/child relationships from Gateway API specs
-- Link resources to their Cluster when appropriate
+In the Helm values `configMap.config`, define mappings for the resources selected in Step 3.
 
-For each relation:
-1. Add the relation to the blueprint in Port
-2. Add the corresponding JQ mapping in the exporter config to populate the relation
-
-### 4. Configure Resource Mappings
-
-In the Helm values `configMap.config`, define mappings for:
-
-**Core Resources:**
-- `v1/namespaces` → namespace blueprint
-- `v1/namespaces` (kube-system) → cluster blueprint
-- `apps/v1/deployments` → workload blueprint
-- `apps/v1/daemonsets` → workload blueprint
-- `apps/v1/statefulsets` → workload blueprint
-- `apps/v1/replicasets` → replicaset blueprint
-- `v1/pods` → pod blueprint
-- `v1/services` → service blueprint
-- `networking.k8s.io/v1/ingresses` → ingress blueprint
-
-**Gateway API:**
-- `gateway.networking.k8s.io/v1/gateways` → gateway blueprint
-- `gateway.networking.k8s.io/v1/httproutes` → httproute blueprint
-
-**Custom CRDs:**
-- `dot-ai.devopstoolkit.live/v1alpha1/capabilityscanconfigs` → capabilityscanconfig blueprint
-- `dot-ai.devopstoolkit.live/v1alpha1/remediationpolicies` → remediationpolicy blueprint
-- `dot-ai.devopstoolkit.live/v1alpha1/resourcesyncconfigs` → resourcesyncconfig blueprint
-- `dot-ai.devopstoolkit.live/v1alpha1/solutions` → solution blueprint
-
-### 5. Map Solution Resources to Generic Blueprint
-
-Solutions reference arbitrary K8s resources in `spec.resources`. Use `itemsToParse` to create a `k8s-resource` entity for each referenced resource:
+**For nested resources** (arrays inside a resource spec), use `itemsToParse`:
 
 ```yaml
-# K8s Resources from Solution spec.resources
-- kind: dot-ai.devopstoolkit.live/v1alpha1/solutions
+- kind: your.api/v1/yourresource
   selector:
     query: "true"
   port:
-    itemsToParse: .spec.resources
+    itemsToParse: .spec.items
     entity:
       mappings:
-        - identifier: .item.kind + "-" + .item.name + "-" + (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
-          title: .item.kind + "/" + .item.name
-          blueprint: '"k8s-resource"'
+        - identifier: .item.name + "-" + .metadata.namespace + "-" + env.CLUSTER_NAME
+          blueprint: '"child-blueprint"'
           properties:
-            kind: .item.kind
-            apiVersion: .item.apiVersion
-            resourceName: .item.name
+            name: .item.name
           relations:
-            Namespace: (.item.namespace // .metadata.namespace) + "-" + env.CLUSTER_NAME
-            Solution: .metadata.name + "-" + .metadata.namespace + "-" + env.CLUSTER_NAME
+            Parent: .metadata.name + "-" + .metadata.namespace + "-" + env.CLUSTER_NAME
 ```
 
-This creates entities for ALL resources managed by a Solution (Deployments, Services, Secrets, ConfigMaps, Certificates, etc.) with a relation back to the Solution, enabling visualization of the complete resource tree in Port's Graph View.
+## Step 5: Configure Blueprint Relations
 
-### 6. Push and Verify
+Analyze exported resources and establish relations:
+- Examine ownerReferences to link child → parent resources
+- Use selector labels to connect Services → Workloads
+- Link Ingress/HTTPRoute → Services via backend references
 
-1. Commit and push to Git
-2. Wait for ArgoCD to sync
-3. Verify exporter pod is running: `kubectl get pods -n port-k8s-exporter`
-4. Check logs for successful syncs: `kubectl logs -n port-k8s-exporter deployment/port-k8s-exporter`
-5. Verify entities in Port using MCP tools
-
-## Notes
-
-- For CRDs, you can alternatively use `crdsToDiscover` parameter to auto-create blueprints, but manual creation gives more control over properties
-- Standard K8s resources (Service, Pod, etc.) require manual blueprint creation - the exporter only auto-creates cluster, namespace, and workload blueprints by default
-- Use `overwriteConfigurationOnRestart: true` to ensure the exporter uses the configMap config instead of the config stored in Port's API
-
-## Troubleshooting
-
-- If new resources aren't syncing, restart the exporter: `kubectl rollout restart deployment/port-k8s-exporter -n port-k8s-exporter`
-- Check configMap is updated: `kubectl get configmap port-k8s-exporter -n port-k8s-exporter -o yaml`
-- Verify blueprints exist in Port before adding mappings
+For each relation:
+1. Add the relation to the blueprint in Port
+2. Add the corresponding JQ mapping in the exporter config
 
 ---
 
@@ -146,563 +125,87 @@ This creates entities for ALL resources managed by a Solution (Deployments, Serv
 
 Sync GitHub workflows, workflow runs, and pull requests to Port.
 
-## Steps
+## Step 1: Install Port's GitHub App (User action required)
 
-### 1. Install Port's GitHub App
-
-1. Go to Port's Data Sources page: https://app.port.io/settings/data-sources
+1. Go to Port's Data Sources: https://app.port.io/settings/data-sources
 2. Click "+ Data source" → select "GitHub"
-3. Install the GitHub App on your GitHub account/organization
-4. Select the repositories you want to sync
-5. Ensure the app has permissions for: actions, checks, pull requests, and repository metadata
+3. Install the GitHub App on your account/organization
+4. Select repositories to sync
+5. Ensure permissions for: actions, checks, pull requests, repository metadata
 
-### 2. Create GitHub Blueprints
+## Step 2: Create GitHub Blueprints
 
-Create these blueprints using Port MCP tools (note: `githubPullRequest` may already exist from onboarding):
+Create blueprints for `githubWorkflow`, `githubWorkflowRun`, and `githubPullRequest` (if not exists) using Port MCP tools. Inspect integration kinds to determine appropriate properties.
 
-**githubWorkflow:**
-- path (string) - workflow file path
-- status (string/enum) - active, deleted, disabled_fork, disabled_inactivity, disabled_manually
-- createdAt (date-time)
-- updatedAt (date-time)
-- link (url)
-- Relation to service blueprint
+## Step 3: Configure GitHub Integration Mapping
 
-**githubWorkflowRun:**
-- name (string)
-- triggeringActor (string)
-- status (string/enum) - queued, in_progress, completed, etc.
-- conclusion (string/enum) - success, failure, cancelled, etc.
-- createdAt, runStartedAt, updatedAt (date-time)
-- runNumber, runAttempt (number)
-- link (url)
-- Relation to githubWorkflow
-
-**githubPullRequest** (if not exists):
-- creator (string)
-- assignees (array)
-- reviewers (array)
-- status (enum) - open, closed, merged
-- closedAt, updatedAt, mergedAt (date-time)
-- link (url)
-- Relation to service blueprint
-
-### 3. Configure GitHub Integration Mapping via API
-
-The Port MCP tools don't include an `update_integration` tool, so use the Port REST API to configure the mapping.
-
-First, get the integration identifier:
-```bash
-# List integrations to find the GitHub one
-curl -s "https://api.getport.io/v1/integration" \
-  -H "Authorization: Bearer $PORT_TOKEN" | jq '.integrations[] | select(.integrationType == "GitHub")'
-```
-
-Then update the integration config:
-```bash
-curl -X PATCH "https://api.getport.io/v1/integration/<INTEGRATION_ID>" \
-  -H "Authorization: Bearer $PORT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d @github_mapping.json
-```
-
-**github_mapping.json:**
-```json
-{
-  "config": {
-    "createMissingRelatedEntities": true,
-    "resources": [
-      {
-        "kind": "pull-request",
-        "selector": {
-          "query": "true",
-          "closedPullRequests": true
-        },
-        "port": {
-          "entity": {
-            "mappings": {
-              "identifier": ".head.repo.name + \"/\" + (.id|tostring)",
-              "title": ".title",
-              "blueprint": "\"githubPullRequest\"",
-              "properties": {
-                "creator": ".user.login",
-                "assignees": "[.assignees[].login]",
-                "reviewers": "[.requested_reviewers[].login]",
-                "status": "if .merged then \"merged\" elif .state == \"closed\" then \"closed\" else \"open\" end",
-                "closedAt": ".closed_at",
-                "updatedAt": ".updated_at",
-                "mergedAt": ".merged_at",
-                "link": ".html_url"
-              },
-              "relations": {
-                "service": ".head.repo.name"
-              }
-            }
-          }
-        }
-      },
-      {
-        "kind": "workflow",
-        "selector": {
-          "query": "true"
-        },
-        "port": {
-          "entity": {
-            "mappings": {
-              "identifier": ".repo + \"/\" + (.id|tostring)",
-              "title": ".name",
-              "blueprint": "\"githubWorkflow\"",
-              "properties": {
-                "path": ".path",
-                "status": ".state",
-                "createdAt": ".created_at",
-                "updatedAt": ".updated_at",
-                "link": ".html_url"
-              },
-              "relations": {
-                "repository": ".repo"
-              }
-            }
-          }
-        }
-      },
-      {
-        "kind": "workflow-run",
-        "selector": {
-          "query": "true"
-        },
-        "port": {
-          "entity": {
-            "mappings": {
-              "identifier": ".repository.name + \"/\" + (.id|tostring)",
-              "title": ".display_title",
-              "blueprint": "\"githubWorkflowRun\"",
-              "properties": {
-                "name": ".name",
-                "triggeringActor": ".triggering_actor.login",
-                "status": ".status",
-                "conclusion": ".conclusion",
-                "createdAt": ".created_at",
-                "runStartedAt": ".run_started_at",
-                "updatedAt": ".updated_at",
-                "runNumber": ".run_number",
-                "runAttempt": ".run_attempt",
-                "link": ".html_url"
-              },
-              "relations": {
-                "workflow": ".repository.name + \"/\" + (.workflow_id|tostring)"
-              }
-            }
-          }
-        }
-      }
-    ]
-  }
-}
-```
-
-### 4. Trigger Resync
-
-After updating the config, trigger a resync:
-```bash
-curl -X PATCH "https://api.getport.io/v1/integration/<INTEGRATION_ID>" \
-  -H "Authorization: Bearer $PORT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### 5. Verify GitHub Integration
-
-1. Check integration logs for successful syncs
-2. Verify entities appear in Port catalog:
-   - GitHub Workflows
-   - GitHub Workflow Runs
-   - Pull Requests
-3. Verify relations between workflow runs → workflows
-
-## Important Notes
-
-- **closedPullRequests: true** - By default, Port only syncs open PRs. Add this to the pull-request selector to include closed/merged PRs.
-- **createMissingRelatedEntities: true** - Ensures related entities are created even if they don't exist yet.
-- The GitHub App must have the correct permissions enabled in GitHub (Settings → Applications → Configure).
-
-## Optional: Link GitHub to Kubernetes
-
-To connect GitHub workflows to Kubernetes workloads:
-
-1. Add a `repository` relation to the `workload` blueprint
-2. Update K8s exporter mappings to extract repository info from labels/annotations
-3. This enables tracing from deployment → workflow run → workflow → repository
+Use Port REST API to update the integration config with mappings for `pull-request`, `workflow`, and `workflow-run` kinds.
 
 ---
 
 # Part 3: Organize Catalog with Folders
 
-Organize the Port catalog into logical groups using folders.
-
-## Step 1: Create Folders in Port UI
+## Step 1: Create Folders in Port UI (User action required)
 
 Folder creation via REST API is not supported. Create folders manually:
 
-1. Go to the [Port Catalog](https://app.getport.io/organization/catalog)
+1. Go to [Port Catalog](https://app.getport.io/organization/catalog)
 2. Click `+ New` → `New folder`
-3. Create these folders:
+3. Create folders for logical groupings (e.g., "GitHub", "Kubernetes Core", "Kubernetes CRDs")
 
-| Folder Title | Auto-generated Identifier |
-|--------------|---------------------------|
-| GitHub | `git_hub` |
-| Kubernetes Core | `kubernetes_core` |
-| Kubernetes CRDs | `kubernetes_cr_ds` |
-
-**Note:** Identifiers are auto-generated using snake_case (spaces → underscores, lowercase).
+**Note:** Identifiers are auto-generated using snake_case.
 
 ## Step 2: Move Pages into Folders via API
 
-After creating folders, use the REST API to move pages:
-
-```bash
-# Move a page into a folder
-curl -X PATCH "https://api.getport.io/v1/pages/<PAGE_ID>" \
-  -H "Authorization: Bearer $PORT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"parent": "<FOLDER_ID>", "after": null}'
-```
-
-**Important:** The `"after": null` field is required when moving pages to empty folders.
-
-### Pages to move:
-
-**GitHub folder (`git_hub`):**
-- githubWorkflows
-- githubWorkflowRuns
-- githubPullRequests
-
-**Kubernetes Core folder (`kubernetes_core`):**
-- clusters
-- namespaces
-- workloads
-- replicasets
-- pods
-- services
-- ingresses
-- gateways
-- httproutes
-
-**Kubernetes CRDs folder (`kubernetes_cr_ds`):**
-- capabilityscanconfigs
-- remediationpolicies
-- resourcesyncconfigs
-- solutions
-- k8s-resources
-
-## Automation Script
-
-```bash
-PORT_TOKEN="<your-token>"
-
-# GitHub pages
-for page in githubWorkflows githubWorkflowRuns githubPullRequests; do
-  curl -s -X PATCH "https://api.getport.io/v1/pages/$page" \
-    -H "Authorization: Bearer $PORT_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d '{"parent": "git_hub", "after": null}'
-done
-
-# Kubernetes Core pages
-for page in clusters namespaces workloads replicasets pods services ingresses gateways httproutes; do
-  curl -s -X PATCH "https://api.getport.io/v1/pages/$page" \
-    -H "Authorization: Bearer $PORT_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d '{"parent": "kubernetes_core", "after": null}'
-done
-
-# Kubernetes CRDs pages
-for page in capabilityscanconfigs remediationpolicies resourcesyncconfigs solutions k8s-resources; do
-  curl -s -X PATCH "https://api.getport.io/v1/pages/$page" \
-    -H "Authorization: Bearer $PORT_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d '{"parent": "kubernetes_cr_ds", "after": null}'
-done
-```
+Use REST API to move pages. The `"after": null` field is required when moving pages to empty folders.
 
 ---
 
 # Part 4: Self-Service Actions for CRDs
 
-Create Port self-service actions that trigger GitHub workflows to manage CRD manifests via GitOps.
+Create Port self-service actions that trigger GitHub workflows to manage CRD manifests.
 
-## Overview
+## Step 0: Configure GitHub Repository Secrets
 
-This setup enables users to create, update, and delete CRD resources directly from Port's Self-Service tab. Actions trigger GitHub workflows that:
-1. Create/update/delete YAML manifests in the `./apps/` directory
-2. Commit and push changes to Git
-3. ArgoCD syncs the changes to the cluster
-4. Report status back to Port
-
-## Prerequisites
-
-Add these GitHub repository secrets:
+Use `gh secret set` to add required secrets:
 - `PORT_CLIENT_ID` - Port client ID
 - `PORT_CLIENT_SECRET` - Port client secret
+- `KUBE_CONFIG` - (Only for non-GitOps) Base64-encoded kubeconfig
 
 ## Step 1: Create GitHub Workflows
 
-Create workflow files in `.github/workflows/` for each CRD:
+Create workflow for each CRD with `workflow_dispatch` trigger accepting:
+- `action` (create/update/delete)
+- `name`, `namespace`
+- Resource-specific inputs
+- `port_run_id`
 
-### manage-capabilityscanconfig.yaml
-```yaml
-name: Manage CapabilityScanConfig
-on:
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Action to perform'
-        required: true
-        type: choice
-        options: [create, update, delete]
-      name:
-        description: 'Resource name'
-        required: true
-        type: string
-      namespace:
-        description: 'Kubernetes namespace'
-        required: true
-        type: string
-        default: 'dot-ai'
-      mcp_endpoint:
-        description: 'MCP endpoint URL'
-        required: false
-        type: string
-        default: 'http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/manageOrgData'
-      mcp_collection:
-        description: 'MCP collection name'
-        required: false
-        type: string
-      auth_secret_name:
-        description: 'Auth secret name'
-        required: false
-        type: string
-        default: 'dot-ai-secrets'
-      auth_secret_key:
-        description: 'Auth secret key'
-        required: false
-        type: string
-        default: 'auth-token'
-      debounce_window_seconds:
-        description: 'Debounce window in seconds'
-        required: false
-        type: number
-      port_run_id:
-        description: 'Port action run ID'
-        required: true
-        type: string
-```
-
-Similar workflows for:
-- `manage-remediationpolicy.yaml` - includes mode, event selectors, Slack notifications, rate limiting
-- `manage-resourcesyncconfig.yaml` - includes debounce window, resync interval
-- `manage-solution.yaml` - includes intent, rationale, documentation URL, resources array
-
-### Workflow Pattern
-
-Each workflow follows this pattern:
-1. **Checkout** - Clone the repository
-2. **Report running** - Update Port run status to "RUNNING"
-3. **Create/Update manifest** - Generate YAML using heredoc + sed/yq
-4. **Delete manifest** - Remove the file (for delete action)
-5. **Commit and push** - Git commit and push changes
-6. **Report success/failure** - Update Port run status
-
-```yaml
-- name: Report running status to Port
-  uses: port-labs/port-github-action@v1
-  with:
-    clientId: ${{ secrets.PORT_CLIENT_ID }}
-    clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-    operation: PATCH_RUN
-    runId: ${{ inputs.port_run_id }}
-    status: "RUNNING"
-    logMessage: "${{ inputs.action }} resource ${{ inputs.name }}"
-
-- name: Commit and push
-  run: |
-    git config user.name "github-actions[bot]"
-    git config user.email "github-actions[bot]@users.noreply.github.com"
-    git add -A apps/
-    if git diff --staged --quiet; then
-      echo "No changes to commit"
-    else
-      git commit -m "${{ inputs.action }} ResourceType ${{ inputs.name }}"
-      git push
-    fi
-
-- name: Report success to Port
-  uses: port-labs/port-github-action@v1
-  with:
-    clientId: ${{ secrets.PORT_CLIENT_ID }}
-    clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-    operation: PATCH_RUN
-    runId: ${{ inputs.port_run_id }}
-    status: "SUCCESS"
-    logMessage: "Resource ${{ inputs.name }} ${{ inputs.action }}d successfully"
-
-- name: Report failure to Port
-  if: failure()
-  uses: port-labs/port-github-action@v1
-  with:
-    clientId: ${{ secrets.PORT_CLIENT_ID }}
-    clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-    operation: PATCH_RUN
-    runId: ${{ inputs.port_run_id }}
-    status: "FAILURE"
-    logMessage: "Failed to ${{ inputs.action }} resource ${{ inputs.name }}"
-```
+**Workflow steps:**
+1. Checkout repository
+2. Report "RUNNING" status to Port using `port-labs/port-github-action@v1`
+3. Create/update/delete manifest in the configured manifest directory
+4. Commit and push to Git
+5. **Non-GitOps only**: Run `kubectl apply` or `kubectl delete`
+6. Report "SUCCESS" or "FAILURE" to Port
 
 ## Step 2: Create Port Self-Service Actions
 
-Create 3 actions per CRD (create, update, delete) using Port MCP tools or REST API.
+Create 3 actions per CRD using Port MCP tools:
 
-### Action Types
 - **CREATE** - Creates new resources (no entity context)
 - **DAY-2** - Updates existing resources (has entity context)
 - **DELETE** - Deletes resources (has entity context)
 
-### Example: Create Action (CapabilityScanConfig)
-
-```json
-{
-  "identifier": "create_capabilityscanconfig",
-  "title": "Create CapabilityScanConfig",
-  "trigger": {
-    "type": "self-service",
-    "operation": "CREATE",
-    "blueprintIdentifier": "capabilityscanconfig",
-    "userInputs": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "Name",
-          "description": "Resource name"
-        },
-        "namespace": {
-          "type": "string",
-          "title": "Namespace",
-          "default": "dot-ai"
-        },
-        "mcp_endpoint": {
-          "type": "string",
-          "title": "MCP Endpoint",
-          "default": "http://dot-ai.dot-ai.svc.cluster.local:3456/api/v1/tools/manageOrgData"
-        }
-        // ... additional properties
-      },
-      "required": ["name", "namespace"]
-    }
-  },
-  "invocationMethod": {
-    "type": "GITHUB",
-    "org": "<github-org>",
-    "repo": "<github-repo>",
-    "workflow": "manage-capabilityscanconfig.yaml",
-    "workflowInputs": {
-      "action": "create",
-      "name": "{{ .inputs.name }}",
-      "namespace": "{{ .inputs.namespace }}",
-      "mcp_endpoint": "{{ .inputs.mcp_endpoint }}",
-      "port_run_id": "{{ .run.id }}"
-    },
-    "reportWorkflowStatus": true
-  }
-}
-```
-
-### Example: Update Action (DAY-2)
-
-For update actions, pre-populate inputs with current entity values using `default.jqQuery`:
-
-```json
-{
-  "identifier": "update_capabilityscanconfig",
-  "title": "Update CapabilityScanConfig",
-  "trigger": {
-    "type": "self-service",
-    "operation": "DAY-2",
-    "blueprintIdentifier": "capabilityscanconfig",
-    "userInputs": {
-      "properties": {
-        "mcp_endpoint": {
-          "type": "string",
-          "title": "MCP Endpoint",
-          "default": {
-            "jqQuery": ".entity.properties.mcpEndpoint"
-          }
-        },
-        "mcp_collection": {
-          "type": "string",
-          "title": "MCP Collection",
-          "default": {
-            "jqQuery": ".entity.properties.mcpCollection // \"\""
-          }
-        },
-        "debounce_window_seconds": {
-          "type": "number",
-          "title": "Debounce Window (seconds)",
-          "default": {
-            "jqQuery": ".entity.properties.debounceWindowSeconds // 30"
-          }
-        }
-      }
-    }
-  },
-  "invocationMethod": {
-    "type": "GITHUB",
-    "org": "<github-org>",
-    "repo": "<github-repo>",
-    "workflow": "manage-capabilityscanconfig.yaml",
-    "workflowInputs": {
-      "action": "update",
-      "name": "{{ .entity.identifier | split(\"-\") | last }}",
-      "namespace": "{{ .entity.relations.Namespace | split(\"-\") | first }}",
-      "mcp_endpoint": "{{ .inputs.mcp_endpoint }}",
-      "port_run_id": "{{ .run.id }}"
-    },
-    "reportWorkflowStatus": true
-  }
-}
-```
-
-**Important:** Use `// "default_value"` in jqQuery for fallback values when the property might be null.
-
-### Key Template Expressions
-
+**Key template expressions:**
 - `{{ .inputs.fieldName }}` - User input value
 - `{{ .run.id }}` - Port action run ID
 - `{{ .entity.identifier }}` - Entity identifier (for DAY-2/DELETE)
-- `{{ .entity.relations.Namespace }}` - Related entity identifier
 - `{{ .entity.identifier | split("-") | last }}` - Extract resource name from identifier
 
-### Actions to Create
+**For DAY-2 actions**, pre-populate inputs with current entity values:
 
-| Blueprint | Create Action | Update Action | Delete Action |
-|-----------|--------------|---------------|---------------|
-| capabilityscanconfig | create_capabilityscanconfig | update_capabilityscanconfig | delete_capabilityscanconfig |
-| remediationpolicy | create_remediationpolicy | update_remediationpolicy | delete_remediationpolicy |
-| resourcesyncconfig | create_resourcesyncconfig | update_resourcesyncconfig | delete_resourcesyncconfig |
-| solution | create_solution | update_solution | delete_solution |
-
-## Step 3: Verify Setup
-
-1. Go to Port Self-Service tab
-2. Verify all 12 actions appear
-3. Test creating a new resource
-4. Check GitHub Actions tab for workflow execution
-5. Verify manifest created in `./apps/` directory
-6. Check ArgoCD for sync status
-7. Verify entity appears in Port catalog
-
-## Troubleshooting
-
-- **Action not triggering workflow**: Verify GitHub App has workflow permissions
-- **Workflow failing**: Check GitHub Actions logs, verify secrets are set
-- **Entity not appearing**: Check K8s exporter logs, verify blueprint mapping exists
-- **Status not updating in Port**: Verify PORT_CLIENT_ID and PORT_CLIENT_SECRET secrets
+```json
+"default": {
+  "jqQuery": ".entity.properties.someField // \"default_value\""
+}
+```
