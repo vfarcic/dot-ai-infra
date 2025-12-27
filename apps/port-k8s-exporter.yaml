@@ -1,0 +1,64 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: port-credentials
+  namespace: port-k8s-exporter
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: gcp-secret-manager
+    kind: ClusterSecretStore
+  target:
+    name: port-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: PORT_CLIENT_ID
+      remoteRef:
+        key: port-client-id
+    - secretKey: PORT_CLIENT_SECRET
+      remoteRef:
+        key: port-client-secret
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: port-k8s-exporter
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://port-labs.github.io/helm-charts
+    chart: port-k8s-exporter
+    targetRevision: "*"
+    helm:
+      valuesObject:
+        secret:
+          create: false
+        portBaseUrl: https://api.port.io
+        stateKey: dot-ai
+        eventListener:
+          type: POLLING
+        extraEnv:
+          - name: CLUSTER_NAME
+            value: dot-ai
+          - name: PORT_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: port-credentials
+                key: PORT_CLIENT_ID
+          - name: PORT_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: port-credentials
+                key: PORT_CLIENT_SECRET
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: port-k8s-exporter
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
