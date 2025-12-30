@@ -19,6 +19,11 @@ spec:
           enabled: false
         controller:
           enabled: true
+        extraEnv:
+          - name: DOT_AI_USER_PROMPTS_REPO
+            value: "https://github.com/vfarcic/dot-ai"
+          - name: DOT_AI_USER_PROMPTS_PATH
+            value: "user-prompts"
   destination:
     server: https://kubernetes.default.svc
     namespace: dot-ai
