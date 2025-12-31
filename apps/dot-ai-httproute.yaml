@@ -17,3 +17,6 @@ spec:
     backendRefs:
     - name: dot-ai
       port: 3456
+    timeouts:
+      request: "3600s"
+      backendRequest: "3600s"
