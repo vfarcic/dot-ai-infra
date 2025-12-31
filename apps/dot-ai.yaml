@@ -24,6 +24,8 @@ spec:
             value: "https://github.com/vfarcic/dot-ai"
           - name: DOT_AI_USER_PROMPTS_PATH
             value: "user-prompts"
+        webUI:
+          baseUrl: https://ui.devopstoolkit.ai
   destination:
     server: https://kubernetes.default.svc
     namespace: dot-ai
