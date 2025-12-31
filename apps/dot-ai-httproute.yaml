@@ -10,9 +10,7 @@ spec:
   hostnames:
   - dot-ai.devopstoolkit.ai
   rules:
-  - timeouts:
-      request: 1h
-    matches:
+  - matches:
     - path:
         type: PathPrefix
         value: /
