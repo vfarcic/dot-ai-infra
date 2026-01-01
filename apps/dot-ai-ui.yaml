@@ -15,6 +15,7 @@ spec:
       valuesObject:
         dotAi:
           url: http://dot-ai:3456
+          existingSecret: dot-ai-secrets
         ingress:
           enabled: false
           host: ui.devopstoolkit.ai
