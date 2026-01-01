@@ -21,6 +21,12 @@ spec:
         gateway:
           name: main
           namespace: gateway
+          listeners:
+            http:
+              hostname: ui.devopstoolkit.ai
+            https:
+              enabled: true
+              hostname: ui.devopstoolkit.ai
   destination:
     server: https://kubernetes.default.svc
     namespace: dot-ai
