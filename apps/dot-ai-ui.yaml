@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dot-ai-ui
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/vfarcic/dot-ai-ui/charts
+    chart: dot-ai-ui
+    targetRevision: 0.1.0
+    helm:
+      valuesObject:
+        dotAi:
+          url: http://dot-ai:3456
+        ingress:
+          enabled: false
+          host: ui.devopstoolkit.ai
+        gateway:
+          name: main
+          namespace: gateway
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dot-ai
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
