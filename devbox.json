@@ -9,7 +9,10 @@
     "kubectl-tree@0.4.6"
   ],
   "shell": {
-    "init_hook": [],
-    "scripts":   {}
+    "init_hook": [
+      "[ -n \"$USE_VALS\" ] && eval \"$(vals env -export -f .env.vals.yaml)\"",
+      "[ -f .env ] && source .env"
+    ],
+    "scripts": {}
   }
 }
