@@ -31,6 +31,9 @@ spec:
             listeners:
               http:
                 hostname: dot-ai.devopstoolkit.ai
+            timeouts:
+              request: ""
+              backendRequest: ""
         dot-ai-ui:
           dotAi:
             auth:
