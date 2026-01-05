@@ -49,5 +49,5 @@ spec:
     - jaeger.devopstoolkit.ai
   rules:
     - backendRefs:
-        - name: jaeger-all-in-one
+        - name: jaeger
           port: 16686

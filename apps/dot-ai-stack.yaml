@@ -28,7 +28,7 @@ spec:
             - name: OTEL_EXPORTER_TYPE
               value: "jaeger"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://jaeger-all-in-one.jaeger:4318/v1/traces"
+              value: "http://jaeger.jaeger:4318/v1/traces"
           webUI:
             baseUrl: https://ui.devopstoolkit.ai
           gateway:
