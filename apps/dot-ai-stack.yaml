@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: ghcr.io/vfarcic/dot-ai-stack/charts
     chart: dot-ai-stack
-    targetRevision: 0.5.0
+    targetRevision: 0.6.0
     helm:
       valuesObject:
         dot-ai:
@@ -35,9 +35,6 @@ spec:
               request: ""
               backendRequest: ""
         dot-ai-ui:
-          dotAi:
-            auth:
-              existingSecret: dot-ai-secrets
           gateway:
             name: main
             namespace: gateway
