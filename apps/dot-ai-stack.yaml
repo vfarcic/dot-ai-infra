@@ -23,6 +23,12 @@ spec:
               value: "https://github.com/vfarcic/prompts"
             - name: DOT_AI_USER_PROMPTS_PATH
               value: "."
+            - name: OTEL_TRACING_ENABLED
+              value: "true"
+            - name: OTEL_EXPORTER_TYPE
+              value: "jaeger"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-all-in-one.jaeger:4318/v1/traces"
           webUI:
             baseUrl: https://ui.devopstoolkit.ai
           gateway:
