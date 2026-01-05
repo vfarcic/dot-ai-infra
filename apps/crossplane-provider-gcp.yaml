@@ -4,7 +4,7 @@ metadata:
   name: crossplane-provider-gcp
   namespace: crossplane-system
   annotations:
-    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-wave: "1"
     iam.gke.io/gcp-service-account: crossplane@vfarcic.iam.gserviceaccount.com
 ---
 apiVersion: pkg.crossplane.io/v1beta1
@@ -12,7 +12,7 @@ kind: DeploymentRuntimeConfig
 metadata:
   name: provider-gcp-certificatemanager
   annotations:
-    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   deploymentTemplate:
     spec:
@@ -26,7 +26,7 @@ kind: Provider
 metadata:
   name: provider-gcp-certificatemanager
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   package: xpkg.upbound.io/upbound/provider-gcp-certificatemanager:v2.4.0
   runtimeConfigRef:
@@ -37,7 +37,7 @@ kind: ManagedResourceActivationPolicy
 metadata:
   name: gcp-certificatemanager-namespaced
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   providerRef:
     name: provider-gcp-certificatemanager
