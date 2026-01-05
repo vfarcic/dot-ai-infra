@@ -1,0 +1,42 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-gcp-certificatemanager
+spec:
+  package: xpkg.upbound.io/upbound/provider-gcp-certificatemanager:v2.4.0
+  runtimeConfigRef:
+    name: provider-gcp-certificatemanager
+---
+apiVersion: pkg.crossplane.io/v1alpha1
+kind: ManagedResourceActivationPolicy
+metadata:
+  name: gcp-certificatemanager-namespaced
+spec:
+  providerRef:
+    name: provider-gcp-certificatemanager
+  matchManagedResourceDefinitions:
+    - group: certificatemanager.gcp.m.upbound.io
+      resources:
+        - certificates
+        - certificatemaps
+        - certificatemapentries
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-gcp-certificatemanager
+spec:
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          serviceAccountName: crossplane-provider-gcp
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crossplane-provider-gcp
+  namespace: crossplane-system
+  annotations:
+    iam.gke.io/gcp-service-account: crossplane@vfarcic.iam.gserviceaccount.com

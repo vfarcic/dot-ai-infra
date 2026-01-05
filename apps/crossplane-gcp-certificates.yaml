@@ -1,0 +1,36 @@
+apiVersion: gcp.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  projectID: vfarcic
+  credentials:
+    source: InjectedIdentity
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: Certificate
+metadata:
+  name: jaeger-certificate
+  namespace: crossplane-system
+spec:
+  forProvider:
+    location: global
+    managed:
+      - domains:
+          - jaeger.devopstoolkit.ai
+  providerConfigRef:
+    name: default
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta2
+kind: CertificateMapEntry
+metadata:
+  name: jaeger-map-entry
+  namespace: crossplane-system
+spec:
+  forProvider:
+    certificatesRefs:
+      - name: jaeger-certificate
+    hostname: jaeger.devopstoolkit.ai
+    map: devopstoolkit-map
+  providerConfigRef:
+    name: default
