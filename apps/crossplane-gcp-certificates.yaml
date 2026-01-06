@@ -20,9 +20,10 @@ spec:
   forProvider:
     location: global
     managed:
-      - domains:
-          - jaeger.devopstoolkit.ai
+      domains:
+        - jaeger.devopstoolkit.ai
   providerConfigRef:
+    kind: ProviderConfig
     name: default
 ---
 apiVersion: certificatemanager.gcp.m.upbound.io/v1beta2
@@ -39,4 +40,5 @@ spec:
     hostname: jaeger.devopstoolkit.ai
     map: devopstoolkit-map
   providerConfigRef:
+    kind: ProviderConfig
     name: default
