@@ -2,6 +2,8 @@ apiVersion: gcp.upbound.io/v1beta1
 kind: ProviderConfig
 metadata:
   name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   projectID: vfarcic
   credentials:
@@ -12,6 +14,8 @@ kind: Certificate
 metadata:
   name: jaeger-certificate
   namespace: crossplane-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   forProvider:
     location: global
@@ -26,6 +30,8 @@ kind: CertificateMapEntry
 metadata:
   name: jaeger-map-entry
   namespace: crossplane-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   forProvider:
     certificatesRefs:
