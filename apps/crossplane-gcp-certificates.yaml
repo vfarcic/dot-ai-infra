@@ -1,7 +1,8 @@
-apiVersion: gcp.upbound.io/v1beta1
+apiVersion: gcp.m.upbound.io/v1beta1
 kind: ProviderConfig
 metadata:
   name: default
+  namespace: jaeger
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
@@ -13,7 +14,7 @@ apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
 kind: Certificate
 metadata:
   name: jaeger-certificate
-  namespace: crossplane-system
+  namespace: jaeger
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
@@ -30,7 +31,7 @@ apiVersion: certificatemanager.gcp.m.upbound.io/v1beta2
 kind: CertificateMapEntry
 metadata:
   name: jaeger-map-entry
-  namespace: crossplane-system
+  namespace: jaeger
   annotations:
     argocd.argoproj.io/sync-wave: "6"
 spec:
