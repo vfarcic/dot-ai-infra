@@ -27,7 +27,7 @@ spec:
     kind: ProviderConfig
     name: default
 ---
-apiVersion: certificatemanager.gcp.m.upbound.io/v1beta2
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
 kind: CertificateMapEntry
 metadata:
   name: jaeger-map-entry
