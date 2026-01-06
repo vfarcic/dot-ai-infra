@@ -20,19 +20,3 @@ spec:
   package: xpkg.upbound.io/upbound/provider-gcp-certificatemanager:v2.4.0
   runtimeConfigRef:
     name: provider-gcp-certificatemanager
----
-apiVersion: apiextensions.crossplane.io/v1alpha1
-kind: ManagedResourceActivationPolicy
-metadata:
-  name: gcp-certificatemanager-namespaced
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-spec:
-  providerRef:
-    name: provider-gcp-certificatemanager
-  matchManagedResourceDefinitions:
-    - group: certificatemanager.gcp.m.upbound.io
-      resources:
-        - certificates
-        - certificatemaps
-        - certificatemapentries
