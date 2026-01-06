@@ -21,7 +21,7 @@ spec:
   runtimeConfigRef:
     name: provider-gcp-certificatemanager
 ---
-apiVersion: pkg.crossplane.io/v1alpha1
+apiVersion: apiextensions.crossplane.io/v1alpha1
 kind: ManagedResourceActivationPolicy
 metadata:
   name: gcp-certificatemanager-namespaced
