@@ -1,0 +1,1 @@
+Use the dot-ai MCP query tool with the intent: "Trace the complete end-to-end request flow for dot-ai-ui: show external ingress entry points, services, deployments, pods, and all backends including MCP servers, databases, tracing, and external API services (Anthropic, OpenAI, etc.) it connects to with their endpoints and configuration."
