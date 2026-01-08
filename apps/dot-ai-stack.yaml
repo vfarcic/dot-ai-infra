@@ -29,8 +29,6 @@ spec:
               value: "jaeger"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: "http://jaeger.jaeger:4318/v1/traces"
-            - name: DOT_AI_FEEDBACK_PROBABILITY
-              value: "1.0"
           webUI:
             baseUrl: https://ui.devopstoolkit.ai
           gateway:
