@@ -10,18 +10,18 @@
   "packageRules": [
     {
       "matchManagers": ["argocd"],
-      "matchPackagePatterns": ["*"],
+      "matchPackageNames": ["*"],
       "enabled": true
     },
     {
       "matchManagers": ["argocd"],
-      "matchPackagePatterns": ["ghcr.io/**"],
+      "matchPackageNames": ["ghcr.io/**"],
       "enabled": false,
       "description": "Disable ArgoCD manager for ghcr.io OCI charts - handled by custom regex manager"
     },
     {
       "matchManagers": ["regex"],
-      "matchPackagePatterns": ["ghcr.io/**"],
+      "matchPackageNames": ["ghcr.io/**"],
       "automerge": false,
       "description": "OCI Helm charts from ghcr.io"
     }
