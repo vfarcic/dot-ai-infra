@@ -31,10 +31,10 @@
       "customType": "regex",
       "fileMatch": ["apps/.+\\.yaml$"],
       "matchStrings": [
-        "repoURL:\\s*(?<registryUrl>ghcr\\.io/[^\\s]+)\\s+chart:\\s*(?<depName>[^\\s]+)\\s+targetRevision:\\s*(?<currentValue>[^\\s]+)"
+        "repoURL:\\s*(?<packageName>ghcr\\.io/[^\\s]+)\\s+chart:\\s*(?<depName>[^\\s]+)\\s+targetRevision:\\s*(?<currentValue>[^\\s]+)"
       ],
       "datasourceTemplate": "docker",
-      "packageNameTemplate": "{{{registryUrl}}}/{{{depName}}}"
+      "packageNameTemplate": "{{{packageName}}}/{{{depName}}}"
     }
   ]
 }
