@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "dependencyDashboardApproval": false,
   "argocd": {
     "fileMatch": ["apps/.+\\.yaml$"]
   },
@@ -11,6 +12,18 @@
       "matchManagers": ["argocd"],
       "matchPackagePatterns": ["*"],
       "enabled": true
+    },
+    {
+      "matchManagers": ["argocd"],
+      "matchPackagePatterns": ["ghcr.io/**"],
+      "enabled": false,
+      "description": "Disable ArgoCD manager for ghcr.io OCI charts - handled by custom regex manager"
+    },
+    {
+      "matchManagers": ["regex"],
+      "matchPackagePatterns": ["ghcr.io/**"],
+      "automerge": false,
+      "description": "OCI Helm charts from ghcr.io"
     }
   ],
   "customManagers": [
