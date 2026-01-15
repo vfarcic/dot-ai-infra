@@ -4,6 +4,7 @@
     "config:recommended"
   ],
   "dependencyDashboardApproval": false,
+  "prConcurrentLimit": 10,
   "argocd": {
     "fileMatch": ["apps/.+\\.yaml$"]
   },
