@@ -23,7 +23,14 @@
       "matchManagers": ["regex"],
       "matchPackageNames": ["ghcr.io/**"],
       "automerge": false,
+      "dependencyDashboardApproval": false,
       "description": "OCI Helm charts from ghcr.io"
+    },
+    {
+      "matchManagers": ["*"],
+      "matchPackageNames": ["*"],
+      "dependencyDashboardApproval": false,
+      "description": "Auto-create PRs without dashboard approval"
     }
   ],
   "customManagers": [
