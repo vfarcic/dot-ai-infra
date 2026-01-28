@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(helm show chart:*)",
+      "Bash(kubectl get:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(gcloud certificate-manager maps entries list:*)",
+      "Bash(curl:*)",
+      "mcp__dot-ai__version",
+      "WebFetch(domain:devopstoolkit.ai)",
+      "WebSearch",
+      "WebFetch(domain:blog.azaurus.dev)",
+      "Bash(gh pr list:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "dot-ai"
+  ]
+}
