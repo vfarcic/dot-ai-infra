@@ -76,8 +76,7 @@ Continue using GCP Secret Manager. Authentication changes from GKE Workload Iden
 ## Milestones
 
 ### Milestone 1: Preparation
-- [ ] Create GCP service account key for External Secrets authentication
-- [ ] Document bootstrap procedure
+- [x] Create GCP service account key for External Secrets authentication
 - [ ] Lower DNS TTL to 60s (do this early, wait 24-48h before cutover)
 
 ### Milestone 2: Linode Cluster Provisioning
