@@ -89,6 +89,18 @@ spec:
         - name: prometheus-stack-grafana
           port: 80
 ---
+apiVersion: gcp.m.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  projectID: vfarcic
+  credentials:
+    source: InjectedIdentity
+---
 apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
 kind: Certificate
 metadata:
