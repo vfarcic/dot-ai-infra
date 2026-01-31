@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://jaegertracing.github.io/helm-charts
     chart: jaeger
-    targetRevision: 4.4.2
+    targetRevision: 4.4.3
     helm:
       valuesObject:
         allInOne:
