@@ -17,6 +17,11 @@ spec:
       valuesObject:
         gatewayAPI:
           manageCRDs: true
+        configInline:
+          gateway:
+            gatewayRef:
+              name: main
+              namespace: gateway
   destination:
     server: https://kubernetes.default.svc
     namespace: projectcontour
