@@ -138,18 +138,18 @@ Create Nushell scripts integrated into the existing `dot.nu` automation framewor
 - [x] Output VM IP and credentials to `.env`
 
 ### Milestone 2: System Hardening Script
-- [ ] Create `scripts/openclaw.nu` with hardening functions
-- [ ] Configure SSH key-only authentication (disable password auth)
-- [ ] Install and configure UFW firewall
-- [ ] Install fail2ban for brute-force protection
-- [ ] Apply system updates
+- [x] Create `scripts/openclaw.nu` with hardening functions
+- [x] Configure SSH key-only authentication (disable password auth)
+- [x] Install and configure UFW firewall
+- [x] Install fail2ban for brute-force protection
+- [x] Apply system updates
 
 ### Milestone 3: Tailscale VPN Integration
-- [ ] Install Tailscale on VM
-- [ ] Configure Tailscale authentication
-- [ ] Update UFW rules to allow Tailscale traffic only
-- [ ] Document Tailscale setup for user's devices
-- [ ] Verify connectivity via Tailscale IP
+- [x] Install Tailscale on VM
+- [x] Configure Tailscale authentication
+- [x] Update UFW rules to allow Tailscale traffic only
+- [x] Document Tailscale setup for user's devices
+- [x] Verify connectivity via Tailscale IP
 
 ### Milestone 4: Docker and OpenClaw Installation
 - [ ] Install Docker with security best practices

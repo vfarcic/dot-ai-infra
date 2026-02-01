@@ -7,6 +7,7 @@ source scripts/ingress.nu
 source scripts/dot-ai.nu
 source scripts/cert-manager.nu
 source scripts/vm.nu
+source scripts/openclaw.nu
 
 def main [] {}
 
@@ -72,9 +73,9 @@ def "main setup openclaw" [
   SSH:        (ansi yellow_bold)ssh root@($vm.ip)(ansi reset)
 
 Next steps:
-  1. Run system hardening (Milestone 2)
-  2. Install Tailscale VPN (Milestone 3)
-  3. Install Docker and OpenClaw (Milestone 4)
+  1. Run system hardening
+  2. Install Tailscale VPN
+  3. Install Docker and OpenClaw
 "
 
     main print source

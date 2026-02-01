@@ -128,23 +128,9 @@ def create-linode [
 ] {
 
     # Validate prerequisites
-    if not (LINODE_TOKEN in $env) {
-        print $"(ansi red_bold)LINODE_TOKEN(ansi reset) environment variable is not set."
-        print "Get your API token from https://cloud.linode.com/profile/tokens"
-        exit 1
-    }
-
     if not ($ssh_key_path | path exists) {
         print $"(ansi red_bold)SSH public key not found(ansi reset) at ($ssh_key_path)"
         print "Generate one with: ssh-keygen -t rsa -b 4096"
-        exit 1
-    }
-
-    # Check if linode-cli is installed
-    let cli_check = do --ignore-errors { which linode-cli | complete }
-    if ($cli_check | is-empty) or ($cli_check.exit_code? != 0) {
-        print $"(ansi red_bold)linode-cli(ansi reset) is not installed."
-        print "Install with: pip install linode-cli"
         exit 1
     }
 
@@ -158,7 +144,7 @@ def create-linode [
 
     # Create the VM
     let result = (
-        linode-cli linodes create
+        linode linodes create
             --type $size
             --region $region
             --image $image
@@ -177,7 +163,7 @@ def create-linode [
     # Wait for running status
     loop {
         let status = (
-            linode-cli linodes view $vm_id --json
+            linode linodes view $vm_id --json
         ) | from json | first
 
         if $status.status == "running" {
@@ -208,14 +194,8 @@ def destroy-linode [
     force: bool
 ] {
 
-    # Validate prerequisites
-    if not (LINODE_TOKEN in $env) {
-        print $"(ansi red_bold)LINODE_TOKEN(ansi reset) environment variable is not set."
-        exit 1
-    }
-
     # Find VM by label
-    let vms = (linode-cli linodes list --json) | from json | where label == $label
+    let vms = (linode linodes list --json) | from json | where label == $label
 
     if ($vms | is-empty) {
         print $"(ansi red_bold)No VM found(ansi reset) with label '($label)'"
@@ -235,7 +215,7 @@ def destroy-linode [
 
     print $"Deleting (ansi yellow_bold)Linode VM(ansi reset) '($label)'..."
 
-    linode-cli linodes delete $vm_id
+    linode linodes delete $vm_id
 
     print $"  VM (ansi green_bold)deleted(ansi reset)"
 }
@@ -245,13 +225,7 @@ def list-linode [
     label: string
 ] {
 
-    # Validate prerequisites
-    if not (LINODE_TOKEN in $env) {
-        print $"(ansi red_bold)LINODE_TOKEN(ansi reset) environment variable is not set."
-        exit 1
-    }
-
-    let vms = (linode-cli linodes list --json) | from json
+    let vms = (linode linodes list --json) | from json
 
     let filtered = if ($label | is-empty) {
         $vms

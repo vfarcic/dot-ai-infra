@@ -173,6 +173,70 @@
         }
       }
     },
+    "linode-cli@5.56.2": {
+      "last_modified": "2026-01-23T17:20:52Z",
+      "resolved": "github:NixOS/nixpkgs/a1bab9e494f5f4939442a57a58d0449a109593fe#linode-cli",
+      "source": "devbox-search",
+      "version": "5.56.2",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/nndavrpafxbgrmlcjkml1qphgi4wifwm-linode-cli-5.56.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/ijwnjx5xxllg5djkr9l5jxxq7w6g8nqb-linode-cli-5.56.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/nndavrpafxbgrmlcjkml1qphgi4wifwm-linode-cli-5.56.2"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/396zfj9cv1rlsiqaa3csslrm3x2sj2ka-linode-cli-5.56.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/czbg7cwzrg5b8rsk98xydf79hnll88xf-linode-cli-5.56.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/396zfj9cv1rlsiqaa3csslrm3x2sj2ka-linode-cli-5.56.2"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ahf7zzdp9cpavnjqqg24mgzwdfqhkw9k-linode-cli-5.56.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/zi1dx7iniicjhlnjk2qjhjww7yc3nl9k-linode-cli-5.56.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/ahf7zzdp9cpavnjqqg24mgzwdfqhkw9k-linode-cli-5.56.2"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/r76vj8dzqh5d8xkmzxvqpgm8176mbkmi-linode-cli-5.56.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/902q3w7kh4c6whninaq2x1zjr9l9aff0-linode-cli-5.56.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/r76vj8dzqh5d8xkmzxvqpgm8176mbkmi-linode-cli-5.56.2"
+        }
+      }
+    },
     "nushell@0.109.1": {
       "last_modified": "2026-01-01T04:40:00Z",
       "resolved": "github:NixOS/nixpkgs/c04833a1e584401bb63c1a63ddc51a71e6aa457a#nushell",
