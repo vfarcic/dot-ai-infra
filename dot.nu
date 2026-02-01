@@ -45,8 +45,61 @@ def "main setup" [] {
 
 }
 
+def "main setup linode cluster" [] {
+
+    main create kubernetes linode --name dot-ai --min-nodes 3 --max-nodes 6 --node-size medium
+
+    print $"(ansi green_bold)Linode cluster ready!(ansi reset)"
+    print $"Next step: nu dot.nu setup linode argocd"
+
+    main print source
+
+}
+
+def "main setup linode argocd" [] {
+
+    kubectl create namespace infra
+
+    kubectl create namespace external-secrets
+
+    kubectl create namespace dot-ai
+
+    # Bootstrap GCP service account secret for External Secrets
+    # This secret allows External Secrets to authenticate with GCP Secret Manager
+    print $"(ansi yellow_bold)Creating GCP service account secret for External Secrets...(ansi reset)"
+    print $"Ensure GCP_SA_KEY environment variable contains the base64-encoded service account JSON key"
+
+    if "GCP_SA_KEY" in $env {
+        (
+            kubectl create secret generic gcp-sa-key
+                --namespace external-secrets
+                --from-literal=key.json=($env.GCP_SA_KEY | decode base64 | decode)
+        )
+    } else {
+        print $"(ansi red_bold)GCP_SA_KEY not set! You must create the secret manually:(ansi reset)"
+        print "kubectl create secret generic gcp-sa-key --namespace external-secrets --from-file=key.json=<path-to-key>"
+    }
+
+    (
+        main apply argocd --host-name argocd.devopstoolkit.ai
+            --app-namespace infra --admin-password $env.ARGO_CD_PASSWORD
+            --gateway-api true
+    )
+
+    print $"(ansi green_bold)Argo CD setup complete!(ansi reset)"
+    print $"Argo CD will sync apps from the apps/ directory."
+    print $"Monitor with: kubectl get applications -n argocd"
+
+}
+
 def "main destroy" [] {
 
     main destroy kubernetes google --delete_project false
+
+}
+
+def "main destroy linode" [] {
+
+    main destroy kubernetes linode
 
 }

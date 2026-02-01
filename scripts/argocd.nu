@@ -1,22 +1,22 @@
 #!/usr/bin/env nu
 
-# Installs ArgoCD with optional ingress and applications setup
+# Installs ArgoCD with optional ingress or Gateway API setup
 #
 # Examples:
 # > main apply argocd --host_name argocd.example.com --ingress_class_name nginx
 # > main apply argocd --host_name argocd.example.com --tls
-# > main apply argocd --host_name argocd.example.com --gateway-api --gateway-name main --gateway-namespace gateway
+# > main apply argocd --host_name argocd.example.com --gateway-api --gateway-name my-gateway
 def "main apply argocd" [
     --host-name = "",
     --apply-apps = true,
     --ingress-class-name = "traefik",
     --admin-password = "admin123",
-    --app-namespace = "a-team",
+    --app-namespace = "argocd",
     --tls = false,
     --cluster-issuer = "letsencrypt",
-    --gateway-api = false,
-    --gateway-name = "main",
-    --gateway-namespace = "gateway"
+    --gateway-api = false,  # Use Gateway API HTTPRoute instead of Ingress
+    --gateway-name = "dotai-gateway",  # Name of the Gateway to attach HTTPRoute to
+    --gateway-namespace = "infra"  # Namespace where the Gateway lives
 ] {
 
     let git_url = git config --get remote.origin.url
@@ -46,21 +46,15 @@ def "main apply argocd" [
     }
 
     if $gateway_api {
-        $values = $values | merge deep {
+        # Gateway API mode: no Ingress, HTTPRoute will be managed separately
+        $values = ($values | merge deep {
             server: {
                 ingress: { enabled: false }
-                httproute: {
-                    enabled: true
-                    parentRefs: [{
-                        name: $gateway_name
-                        namespace: $gateway_namespace
-                    }]
-                    hostnames: [$host_name]
-                }
             }
-        }
+        })
     } else {
-        $values = $values | merge deep {
+        # Ingress mode
+        $values = ($values | merge deep {
             server: {
                 ingress: ({
                     enabled: true
@@ -73,7 +67,7 @@ def "main apply argocd" [
                     }
                 } else { $in })
             }
-        }
+        })
     }
 
     $values | save argocd-values.yaml --force
@@ -81,7 +75,7 @@ def "main apply argocd" [
     helm repo add argo https://argoproj.github.io/argo-helm
 
     helm repo update
-  
+
     (
         helm upgrade --install argocd argo/argo-cd
             --namespace argocd --create-namespace
@@ -123,7 +117,7 @@ def "main apply argocd" [
     } | save argocd/app.yaml --force
 
     if $apply_apps {
-        
+
         kubectl apply --filename argocd/app.yaml
 
     }

@@ -48,6 +48,13 @@ def --env "main create kubernetes" [
                 --min_nodes $min_nodes --max_nodes $max_nodes
         )
 
+    } else if $provider == "linode" {
+
+        (
+            create lke --name $name --node_size $node_size
+                --min_nodes $min_nodes --max_nodes $max_nodes
+        )
+
     } else if $provider == "kind" {
 
         mut config = {
@@ -188,6 +195,21 @@ def "main destroy kubernetes" [
         print $"Deleting (ansi yellow_bold)network(ansi reset)..."
 
         upctl network delete $name
+
+    } else if $provider == "linode" {
+
+        print $"Deleting (ansi yellow_bold)LKE cluster(ansi reset)..."
+
+        let cluster_id = (
+            linode-cli lke clusters-list --json
+                | from json
+                | where { |c| $c.label == $name }
+                | get 0.id
+        )
+
+        linode-cli lke cluster-delete $cluster_id
+
+        print $"(ansi green_bold)LKE cluster deleted!(ansi reset)"
 
     } else if $provider == "kind" {
 
@@ -371,6 +393,106 @@ Press the (ansi yellow_bold)enter key(ansi reset) to continue.
         print $"Waiting for (ansi yellow_bold)5 minutes(ansi reset) to fully set up the cluster..."
 
         sleep 300sec
+
+}
+
+# Creates a Linode Kubernetes Engine (LKE) cluster
+#
+# Examples:
+# > create lke --name my-cluster --node_size medium --min_nodes 3 --max_nodes 5
+def --env "create lke" [
+    --name = "dot"  # Name of the Kubernetes cluster
+    --node_size = "medium" # Supported values: small, medium, large
+    --min_nodes = 3  # Minimum number of nodes in the cluster
+    --max_nodes = 6  # Maximum number of nodes in the cluster
+    --region = "us-ord"  # Linode region (Chicago)
+] {
+
+    # Map node sizes to Linode types
+    # small: g6-standard-2 (2 vCPU, 4GB RAM) ~$24/mo
+    # medium: g6-standard-4 (4 vCPU, 8GB RAM) ~$48/mo
+    # large: g6-standard-8 (8 vCPU, 16GB RAM) ~$96/mo
+    mut node_type = "g6-standard-4"
+    if $node_size == "small" {
+        $node_type = "g6-standard-2"
+    } else if $node_size == "large" {
+        $node_type = "g6-standard-8"
+    }
+
+    print $"Creating (ansi yellow_bold)LKE cluster(ansi reset) with ($min_nodes) x ($node_type) nodes..."
+
+    # Create the cluster with autoscaling node pool
+    let cluster_json = (
+        linode-cli lke cluster-create
+            --label $name
+            --region $region
+            --k8s_version 1.34
+            --node_pools.type $node_type
+            --node_pools.count $min_nodes
+            --node_pools.autoscaler.enabled true
+            --node_pools.autoscaler.min $min_nodes
+            --node_pools.autoscaler.max $max_nodes
+            --json
+    )
+
+    let cluster_id = ($cluster_json | from json | get 0.id)
+    $"export LKE_CLUSTER_ID=($cluster_id)\n" | save --append .env
+
+    print $"Cluster created with ID: (ansi yellow_bold)($cluster_id)(ansi reset)"
+    print $"Waiting for cluster to provision..."
+
+    # Retry getting kubeconfig (can take a few minutes to become available)
+    print $"Getting (ansi yellow_bold)kubeconfig(ansi reset)..."
+    mut kubeconfig_ready = false
+    mut kubeconfig_attempts = 0
+    while (not $kubeconfig_ready) and ($kubeconfig_attempts < 10) {
+        $kubeconfig_attempts = $kubeconfig_attempts + 1
+        try {
+            let kubeconfig_json = (
+                linode-cli lke kubeconfig-view $cluster_id --json
+            )
+            let kubeconfig_b64 = ($kubeconfig_json | from json | get 0.kubeconfig)
+            $kubeconfig_b64 | decode base64 | decode | save $env.KUBECONFIG --force
+            $kubeconfig_ready = true
+        } catch {
+            print $"Attempt ($kubeconfig_attempts)/10: Kubeconfig not ready yet, waiting..."
+            sleep 30sec
+        }
+    }
+
+    if not $kubeconfig_ready {
+        print $"(ansi red_bold)Failed to get kubeconfig after 10 attempts(ansi reset)"
+        return
+    }
+
+    print $"Waiting for (ansi yellow_bold)nodes to be ready(ansi reset)..."
+
+    mut ready = false
+    mut attempts = 0
+    while (not $ready) and ($attempts < 20) {
+        $attempts = $attempts + 1
+        try {
+            let ready_count = (
+                kubectl get nodes --no-headers 2>/dev/null
+                    | lines
+                    | where { |line| $line | str contains " Ready" }
+                    | length
+            )
+            if $ready_count >= $min_nodes {
+                $ready = true
+            }
+        }
+        if not $ready {
+            print $"Attempt ($attempts)/20: Waiting for nodes..."
+            sleep 30sec
+        }
+    }
+
+    if $ready {
+        print $"(ansi green_bold)LKE cluster is ready!(ansi reset)"
+    } else {
+        print $"(ansi yellow_bold)Cluster may still be provisioning. Check with: kubectl get nodes(ansi reset)"
+    }
 
 }
 

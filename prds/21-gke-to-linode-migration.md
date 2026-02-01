@@ -77,11 +77,11 @@ Continue using GCP Secret Manager. Authentication changes from GKE Workload Iden
 
 ### Milestone 1: Preparation
 - [x] Create GCP service account key for External Secrets authentication
-- [ ] Lower DNS TTL to 60s (do this early, wait 24-48h before cutover)
+- [x] Lower DNS TTL to 600s (GoDaddy minimum; do this early, wait 24-48h before cutover)
 
 ### Milestone 2: Linode Cluster Provisioning
-- [ ] Provision LKE cluster with appropriate node sizes
-- [ ] Configure node pool autoscaling (min/max)
+- [x] Provision LKE cluster with appropriate node sizes
+- [x] Configure node pool autoscaling (min/max)
 - [ ] Install Argo CD
 - [ ] Bootstrap GCP service account secret
 
@@ -110,7 +110,7 @@ Continue using GCP Secret Manager. Authentication changes from GKE Workload Iden
 - [ ] Verify Prometheus/Grafana functional
 
 ### Milestone 6: DNS Cutover
-- [ ] Confirm DNS TTL is 60s (from Milestone 1)
+- [ ] Confirm DNS TTL is 600s (from Milestone 1)
 - [ ] Update DNS records to Linode load balancer IP
 - [ ] Monitor error rates and logs
 - [ ] Confirm all traffic flowing through Linode
@@ -126,7 +126,7 @@ Continue using GCP Secret Manager. Authentication changes from GKE Workload Iden
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Service disruption during DNS cutover | High | Lower TTL beforehand, test with hosts file first |
+| Service disruption during DNS cutover | High | Lower TTL to 600s (GoDaddy min) beforehand, test with hosts file first |
 | cert-manager fails to issue certificates | Medium | Test in staging, have DNS-01 solver as backup |
 | External Secrets can't auth to GCP | High | Test service account key before full deployment |
 | LKE autoscaling behavior differs from GKE | Low | Configure conservative min/max, monitor closely |
