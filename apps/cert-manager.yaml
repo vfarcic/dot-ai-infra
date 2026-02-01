@@ -1,24 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: external-secrets
+  name: cert-manager
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://charts.external-secrets.io
-    chart: external-secrets
-    targetRevision: 1.3.1
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.17.2
     helm:
       valuesObject:
-        serviceAccount:
-          create: true
-          name: external-secrets
+        crds:
+          enabled: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: external-secrets
+    namespace: cert-manager
   syncPolicy:
     automated:
       selfHeal: true

@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: devopstoolkit-tls
+  namespace: gateway
+spec:
+  secretName: devopstoolkit-tls
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+  dnsNames:
+    - dot-ai.devopstoolkit.ai
+    - ui.devopstoolkit.ai
+    - argocd.devopstoolkit.ai
+    - jaeger.devopstoolkit.ai
+    - grafana.devopstoolkit.ai

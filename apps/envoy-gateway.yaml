@@ -1,24 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: external-secrets
+  name: envoy-gateway
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://charts.external-secrets.io
-    chart: external-secrets
-    targetRevision: 1.3.1
-    helm:
-      valuesObject:
-        serviceAccount:
-          create: true
-          name: external-secrets
+    repoURL: oci://docker.io/envoyproxy
+    chart: gateway-helm
+    targetRevision: v1.3.0
   destination:
     server: https://kubernetes.default.svc
-    namespace: external-secrets
+    namespace: envoy-gateway-system
   syncPolicy:
     automated:
       selfHeal: true
