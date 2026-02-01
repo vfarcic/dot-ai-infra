@@ -10,13 +10,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://charts.projectcontour.io
+    repoURL: https://projectcontour.github.io/helm-charts
     chart: contour
-    targetRevision: 19.1.2
+    targetRevision: 0.2.1
     helm:
       valuesObject:
-        gateway:
-          enabled: true
+        gatewayAPI:
+          manageCRDs: true
   destination:
     server: https://kubernetes.default.svc
     namespace: projectcontour
