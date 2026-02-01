@@ -70,10 +70,12 @@ def "main setup linode argocd" [] {
     print $"Ensure GCP_SA_KEY environment variable contains the base64-encoded service account JSON key"
 
     if "GCP_SA_KEY" in $env {
+        # Strip newlines from base64 (macOS base64 adds line breaks)
+        let key_json = ($env.GCP_SA_KEY | str replace -a "\n" "" | decode base64 | decode)
         (
             kubectl create secret generic gcp-sa-key
                 --namespace external-secrets
-                --from-literal=key.json=($env.GCP_SA_KEY | decode base64 | decode)
+                $"--from-literal=key.json=($key_json)"
         )
     } else {
         print $"(ansi red_bold)GCP_SA_KEY not set! You must create the secret manually:(ansi reset)"

@@ -447,6 +447,7 @@ def --env "create lke" [
     mut kubeconfig_attempts = 0
     while (not $kubeconfig_ready) and ($kubeconfig_attempts < 10) {
         $kubeconfig_attempts = $kubeconfig_attempts + 1
+        let attempt_num = $kubeconfig_attempts
         try {
             let kubeconfig_json = (
                 linode-cli lke kubeconfig-view $cluster_id --json
@@ -455,7 +456,7 @@ def --env "create lke" [
             $kubeconfig_b64 | decode base64 | decode | save $env.KUBECONFIG --force
             $kubeconfig_ready = true
         } catch {
-            print $"Attempt ($kubeconfig_attempts)/10: Kubeconfig not ready yet, waiting..."
+            print $"Attempt ($attempt_num)/10: Kubeconfig not ready yet, waiting..."
             sleep 30sec
         }
     }

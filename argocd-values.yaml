@@ -11,10 +11,3 @@ server:
   - --insecure
   ingress:
     enabled: false
-  httproute:
-    enabled: true
-    parentRefs:
-    - name: main
-      namespace: gateway
-    hostnames:
-    - argocd.devopstoolkit.ai
