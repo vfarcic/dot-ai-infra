@@ -1,7 +1,7 @@
 # PRD: Deploy OpenClaw on Linode VM
 
 **Issue**: [#23](https://github.com/vfarcic/dot-ai-infra/issues/23)
-**Status**: Draft
+**Status**: In Progress
 **Priority**: High
 **Created**: 2026-02-01
 
@@ -101,7 +101,7 @@ Create Nushell scripts integrated into the existing `dot.nu` automation framewor
 
 | File | Purpose |
 |------|---------|
-| `scripts/linode.nu` | Linode VM provisioning and management |
+| `scripts/vm.nu` | Generic VM provisioning and management (supports Linode, extensible to other providers) |
 | `scripts/openclaw.nu` | OpenClaw installation and hardening |
 
 ### Files to Modify
@@ -131,11 +131,11 @@ Create Nushell scripts integrated into the existing `dot.nu` automation framewor
 ## Milestones
 
 ### Milestone 1: Linode VM Provisioning Script
-- [ ] Create `scripts/linode.nu` with VM create/destroy/list functions
-- [ ] Support configurable VM size (2GB default, 4GB option)
-- [ ] Handle Linode API token securely
-- [ ] Wait for VM boot and SSH availability
-- [ ] Output VM IP and credentials to `.env`
+- [x] Create `scripts/vm.nu` with VM create/destroy/list functions
+- [x] Support configurable VM size (2GB default, 4GB option)
+- [x] Handle Linode API token securely
+- [x] Wait for VM boot and SSH availability
+- [x] Output VM IP and credentials to `.env`
 
 ### Milestone 2: System Hardening Script
 - [ ] Create `scripts/openclaw.nu` with hardening functions
@@ -159,8 +159,8 @@ Create Nushell scripts integrated into the existing `dot.nu` automation framewor
 - [ ] Verify OpenClaw is running and accessible
 
 ### Milestone 5: Integration with dot.nu
-- [ ] Add `main setup openclaw` command to `dot.nu`
-- [ ] Add `main destroy openclaw` command to `dot.nu`
+- [x] Add `main setup openclaw` command to `dot.nu`
+- [x] Add `main destroy openclaw` command to `dot.nu`
 - [ ] Test full provisioning workflow end-to-end
 - [ ] Test destroy workflow
 
