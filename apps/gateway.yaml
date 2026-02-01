@@ -4,6 +4,13 @@ metadata:
   name: gateway
 ---
 apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: contour
+spec:
+  controllerName: projectcontour.io/gateway-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: main
