@@ -3,6 +3,8 @@ kind: Certificate
 metadata:
   name: devopstoolkit-tls
   namespace: gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   secretName: devopstoolkit-tls
   issuerRef:
