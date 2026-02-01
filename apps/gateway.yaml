@@ -9,7 +9,7 @@ metadata:
   name: main
   namespace: gateway
 spec:
-  gatewayClassName: eg
+  gatewayClassName: contour
   listeners:
     - name: http
       port: 80

@@ -26,7 +26,7 @@ Create a parallel Linode LKE cluster with Argo CD managing all deployments. Cont
 
 | Component | Current (GKE) | Target (Linode) |
 |-----------|---------------|-----------------|
-| Gateway | `gke-l7-global-external-managed` | Envoy Gateway (`eg`) |
+| Gateway | `gke-l7-global-external-managed` | Contour (`contour`) |
 | TLS Certificates | GCP Certificate Manager via Crossplane | cert-manager + Let's Encrypt |
 | Secrets Auth | GKE Workload Identity | GCP Service Account Key |
 | Backend Policies | `GCPBackendPolicy` CRD | Remove (not needed) |
@@ -41,7 +41,7 @@ Create a parallel Linode LKE cluster with Argo CD managing all deployments. Cont
 - `apps/external-secrets.yaml` - Change auth from Workload Identity to secret ref
 
 **New files to add:**
-- `apps/envoy-gateway.yaml` - Gateway controller installation
+- `apps/contour.yaml` - Contour Gateway controller installation
 - `apps/cert-manager.yaml` - cert-manager installation
 - `apps/cluster-issuer.yaml` - Let's Encrypt ClusterIssuer
 - `apps/certificate.yaml` - TLS certificate for domains
