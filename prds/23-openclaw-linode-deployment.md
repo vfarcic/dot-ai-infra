@@ -21,7 +21,7 @@ Deploy OpenClaw on an isolated Linode VM with defense-in-depth security:
 4. **Container sandboxing**: Docker with security hardening
 5. **Firewall**: UFW with strict egress rules
 
-Create Nushell scripts integrated into the existing `dot.nu` automation framework for reproducible provisioning and configuration.
+Create Nushell scripts integrated into the existing `./dot.nu` automation framework for reproducible provisioning and configuration. All commands are executed via `./dot.nu` (e.g., `./dot.nu setup openclaw`).
 
 ## Scope
 
@@ -152,11 +152,11 @@ Create Nushell scripts integrated into the existing `dot.nu` automation framewor
 - [x] Verify connectivity via Tailscale IP
 
 ### Milestone 4: Docker and OpenClaw Installation
-- [ ] Install Docker with security best practices
-- [ ] Install OpenClaw via official method
-- [ ] Configure OpenClaw gateway with authentication
-- [ ] Set up LLM provider (Anthropic API key)
-- [ ] Verify OpenClaw is running and accessible
+- [x] Install Docker with security best practices
+- [x] Install OpenClaw via official method
+- [x] Configure OpenClaw gateway with authentication
+- [x] Set up LLM provider (Anthropic API key)
+- [x] Verify OpenClaw is running and accessible
 
 ### Milestone 5: Integration with dot.nu
 - [x] Add `main setup openclaw` command to `dot.nu`
@@ -185,7 +185,7 @@ Create Nushell scripts integrated into the existing `dot.nu` automation framewor
 
 - Linode account with API access
 - Tailscale account (free personal tier)
-- `linode-cli` installed locally
+- `linode` CLI installed locally
 - Anthropic API key (or other LLM provider)
 - SSH key pair for authentication
 

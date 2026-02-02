@@ -1,16 +1,16 @@
 #!/usr/bin/env nu
 
-# Hardens the OpenClaw VM with security best practices
+# Hardens the assistant VM with security best practices
 #
 # Examples:
-# > main harden openclaw 173.255.229.103
-# > main harden openclaw $env.OPENCLAW_IP
-def "main harden openclaw" [
+# > main harden assistant 173.255.229.103
+# > main harden assistant $env.ASSISTANT_IP
+def "main harden assistant" [
     ip: string  # IP address of the VM
     --user: string = "root"  # SSH user
 ] {
 
-    print $"(ansi yellow_bold)Hardening OpenClaw VM(ansi reset) at ($ip)..."
+    print $"(ansi yellow_bold)Hardening assistant VM(ansi reset) at ($ip)..."
 
     # Step 1: System updates
     print $"\n(ansi cyan_bold)Step 1:(ansi reset) Applying system updates..."
@@ -67,7 +67,7 @@ Next step: Install Tailscale VPN
 "
 }
 
-# Installs Tailscale VPN on the OpenClaw VM
+# Installs Tailscale VPN on the assistant VM
 #
 # Examples:
 # > main install tailscale 173.255.229.103 --auth-key tskey-auth-xxx
@@ -113,14 +113,14 @@ Tailscale configuration:
 
 To connect: ssh root@($ts_ip)
 
-Next step: Install Docker and OpenClaw
+Next step: Install Docker and assistant software
 "
 
     # Save Tailscale IP to .env
-    $"export OPENCLAW_TAILSCALE_IP=($ts_ip)\n" | save --append .env
+    $"export ASSISTANT_TAILSCALE_IP=($ts_ip)\n" | save --append .env
 }
 
-# Installs Docker on the OpenClaw VM
+# Installs Docker on the assistant VM
 #
 # Examples:
 # > main install docker 173.255.229.103
@@ -159,16 +159,16 @@ Docker configuration:
   - Log rotation enabled
   - no-new-privileges security flag set
 
-Next step: Install OpenClaw
+Next step: Install assistant software
 "
 }
 
-# Installs OpenClaw on the VM
+# Installs assistant software on the VM
 #
 # Examples:
-# > main install openclaw 173.255.229.103 --anthropic-key sk-ant-xxx
-def "main install openclaw" [
-    ip: string  # IP address of the VM
+# > main install assistant 100.x.x.x --anthropic-key sk-ant-xxx
+def "main install assistant" [
+    ip: string  # IP address of the VM (use Tailscale IP)
     --anthropic-key: string  # Anthropic API key
     --user: string = "root"  # SSH user
 ] {
@@ -178,30 +178,31 @@ def "main install openclaw" [
         exit 1
     }
 
-    print $"(ansi yellow_bold)Installing OpenClaw(ansi reset) on ($ip)..."
+    print $"(ansi yellow_bold)Installing assistant(ansi reset) on ($ip)..."
 
-    # Install OpenClaw
-    print $"\n(ansi cyan_bold)Step 1:(ansi reset) Installing OpenClaw..."
-    main run-ssh $ip "curl -fsSL https://raw.githubusercontent.com/openclaw/openclaw/main/install.sh | sh" --user $user
+    # Install assistant software
+    print $"\n(ansi cyan_bold)Step 1:(ansi reset) Installing assistant..."
+    main run-ssh $ip "curl -fsSL https://openclaw.ai/install.sh | bash" --user $user
 
-    # Configure OpenClaw
-    print $"\n(ansi cyan_bold)Step 2:(ansi reset) Configuring OpenClaw..."
-    main run-ssh $ip $"openclaw config set anthropic_api_key ($anthropic_key)" --user $user
-
-    # Start OpenClaw gateway
-    print $"\n(ansi cyan_bold)Step 3:(ansi reset) Starting OpenClaw gateway..."
-    main run-ssh $ip "openclaw gateway start --port 18789" --user $user
+    # Configure and start via non-interactive onboard
+    print $"\n(ansi cyan_bold)Step 2:(ansi reset) Configuring assistant..."
+    main run-ssh $ip $"openclaw onboard --non-interactive --accept-risk --anthropic-api-key '($anthropic_key)' --gateway-bind tailnet --gateway-auth token --install-daemon --skip-channels --skip-skills" --user $user
 
     # Update firewall for gateway
-    print $"\n(ansi cyan_bold)Step 4:(ansi reset) Updating firewall for gateway..."
+    print $"\n(ansi cyan_bold)Step 3:(ansi reset) Updating firewall for gateway..."
     main run-ssh $ip "ufw allow in on tailscale0 to any port 18789" --user $user
 
-    print $"\n(ansi green_bold)OpenClaw installed!(ansi reset)"
-    print "
-OpenClaw is now running:
-  - Gateway port: 18789
+    # Get gateway token for user
+    print $"\n(ansi cyan_bold)Step 4:(ansi reset) Retrieving gateway token..."
+    let token = (main run-ssh $ip "openclaw config get gateway.token" --user $user | str trim)
+
+    print $"\n(ansi green_bold)Assistant installed!(ansi reset)"
+    print $"
+Assistant is now running:
+  - Dashboard: http://($ip):18789/
+  - Gateway token: ($token)
   - Accessible only via Tailscale
 
-To access: http://<tailscale-ip>:18789
+Next: Configure channels via the dashboard
 "
 }
