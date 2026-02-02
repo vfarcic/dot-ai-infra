@@ -21,7 +21,7 @@ Deploy OpenClaw on an isolated Linode VM with defense-in-depth security:
 4. **Container sandboxing**: Docker with security hardening
 5. **Firewall**: UFW with strict egress rules
 
-Create Nushell scripts integrated into the existing `./dot.nu` automation framework for reproducible provisioning and configuration. All commands are executed via `./dot.nu` (e.g., `./dot.nu setup openclaw`).
+Create Nushell scripts integrated into the existing `./dot.nu` automation framework for reproducible provisioning and configuration. All commands are executed via `./dot.nu` (e.g., `./dot.nu setup assistant`).
 
 ## Scope
 
@@ -102,13 +102,13 @@ Create Nushell scripts integrated into the existing `./dot.nu` automation framew
 | File | Purpose |
 |------|---------|
 | `scripts/vm.nu` | Generic VM provisioning and management (supports Linode, extensible to other providers) |
-| `scripts/openclaw.nu` | OpenClaw installation and hardening |
+| `scripts/assistant.nu` | Assistant VM installation and hardening (generic naming for security) |
 
 ### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `dot.nu` | Add `main setup openclaw` and `main destroy openclaw` commands |
+| `dot.nu` | Add `main setup assistant` and `main destroy assistant` commands |
 
 ### Environment Variables Required
 
@@ -120,12 +120,12 @@ Create Nushell scripts integrated into the existing `./dot.nu` automation framew
 
 ## Success Criteria
 
-- [ ] OpenClaw accessible only via Tailscale VPN (no public ports)
-- [ ] SSH access working with key authentication only
-- [ ] UFW firewall active with strict rules
-- [ ] OpenClaw gateway responding and functional
-- [ ] Can send messages via configured channels (WhatsApp/Telegram/etc.)
-- [ ] VM can be provisioned and destroyed via `nu dot.nu` commands
+- [x] OpenClaw accessible only via Tailscale VPN (no public ports)
+- [x] SSH access working with key authentication only
+- [x] UFW firewall active with strict rules
+- [x] OpenClaw gateway responding and functional
+- [x] Can send messages via configured channels (WhatsApp/Telegram/etc.)
+- [x] VM can be provisioned and destroyed via `nu dot.nu` commands
 - [ ] Documentation complete for initial setup and daily usage
 
 ## Milestones
@@ -138,7 +138,7 @@ Create Nushell scripts integrated into the existing `./dot.nu` automation framew
 - [x] Output VM IP and credentials to `.env`
 
 ### Milestone 2: System Hardening Script
-- [x] Create `scripts/openclaw.nu` with hardening functions
+- [x] Create `scripts/assistant.nu` with hardening functions
 - [x] Configure SSH key-only authentication (disable password auth)
 - [x] Install and configure UFW firewall
 - [x] Install fail2ban for brute-force protection
@@ -159,10 +159,10 @@ Create Nushell scripts integrated into the existing `./dot.nu` automation framew
 - [x] Verify OpenClaw is running and accessible
 
 ### Milestone 5: Integration with dot.nu
-- [x] Add `main setup openclaw` command to `dot.nu`
-- [x] Add `main destroy openclaw` command to `dot.nu`
-- [ ] Test full provisioning workflow end-to-end
-- [ ] Test destroy workflow
+- [x] Add `main setup assistant` command to `dot.nu`
+- [x] Add `main destroy assistant` command to `dot.nu`
+- [x] Test full provisioning workflow end-to-end
+- [x] Test destroy workflow
 
 ### Milestone 6: Documentation and Validation
 - [ ] Document prerequisites (linode-cli, Tailscale account)
