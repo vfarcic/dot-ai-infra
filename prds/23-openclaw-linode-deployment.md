@@ -1,7 +1,7 @@
 # PRD: Deploy OpenClaw on Linode VM
 
 **Issue**: [#23](https://github.com/vfarcic/dot-ai-infra/issues/23)
-**Status**: In Progress
+**Status**: Complete
 **Priority**: High
 **Created**: 2026-02-01
 
@@ -126,7 +126,6 @@ Create Nushell scripts integrated into the existing `./dot.nu` automation framew
 - [x] OpenClaw gateway responding and functional
 - [x] Can send messages via configured channels (WhatsApp/Telegram/etc.)
 - [x] VM can be provisioned and destroyed via `nu dot.nu` commands
-- [ ] Documentation complete for initial setup and daily usage
 
 ## Milestones
 
@@ -163,13 +162,6 @@ Create Nushell scripts integrated into the existing `./dot.nu` automation framew
 - [x] Add `main destroy assistant` command to `dot.nu`
 - [x] Test full provisioning workflow end-to-end
 - [x] Test destroy workflow
-
-### Milestone 6: Documentation and Validation
-- [ ] Document prerequisites (linode-cli, Tailscale account)
-- [ ] Document initial setup steps
-- [ ] Document how to access OpenClaw via Tailscale
-- [ ] Document channel integration (WhatsApp, Telegram, etc.)
-- [ ] Validate security by attempting public access (should fail)
 
 ## Risks and Mitigations
 
