@@ -6,9 +6,6 @@ source scripts/argocd.nu
 source scripts/ingress.nu
 source scripts/dot-ai.nu
 source scripts/cert-manager.nu
-source scripts/vm.nu
-source scripts/assistant.nu
-
 def main [] {}
 
 def "main setup" [] {
@@ -51,48 +48,4 @@ def "main destroy" [] {
 
     main destroy kubernetes google --delete_project false
 
-}
-
-# Sets up an isolated assistant VM on Linode
-#
-# Examples:
-# > main setup assistant
-# > main setup assistant --size g6-standard-2
-def "main setup assistant" [
-    --size: string = "g6-standard-1"  # VM size (g6-nanode-1=1GB, g6-standard-1=2GB, g6-standard-2=4GB)
-] {
-
-    let vm = (main create vm "assistant" --provider linode --size $size)
-
-    main wait-ssh $vm.ip
-
-    print $"
-(ansi green_bold)Assistant VM created successfully!(ansi reset)
-
-  IP Address: (ansi yellow_bold)($vm.ip)(ansi reset)
-  SSH:        (ansi yellow_bold)ssh root@($vm.ip)(ansi reset)
-
-Next steps:
-  1. Run system hardening
-  2. Install Tailscale VPN
-  3. Install Docker and assistant software
-"
-
-    main print source
-}
-
-# Destroys the assistant VM
-#
-# Examples:
-# > main destroy assistant
-# > main destroy assistant --force
-def "main destroy assistant" [
-    --force  # Skip confirmation prompt
-] {
-
-    if $force {
-        main destroy vm "assistant" --provider linode --force
-    } else {
-        main destroy vm "assistant" --provider linode
-    }
 }
