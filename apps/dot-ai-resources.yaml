@@ -47,7 +47,7 @@ metadata:
 spec:
   repository:
     url: https://github.com/vfarcic/devops-catalog.git
-    branch: main
+    branch: master
     depth: 1
     secretRef:
       name: dot-ai-secrets
