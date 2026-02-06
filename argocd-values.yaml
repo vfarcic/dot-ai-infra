@@ -3,9 +3,14 @@ configs:
     argocdServerAdminPasswordMtime: 2021-11-08T15:04:05Z
   cm:
     application.resourceTrackingMethod: annotation
-    timeout.reconciliation: 60s
+    timeout.reconciliation: 180s
   params:
     server.insecure: true
+repoServer:
+  livenessProbe:
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+    periodSeconds: 10
 server:
   extraArgs:
   - --insecure
