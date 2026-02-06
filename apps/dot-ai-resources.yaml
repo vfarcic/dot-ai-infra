@@ -36,3 +36,30 @@ spec:
   rateLimiting:
     eventsPerMinute: 15
     cooldownMinutes: 60
+---
+apiVersion: dot-ai.devopstoolkit.live/v1alpha1
+kind: GitKnowledgeSource
+metadata:
+  name: devops-catalog
+  namespace: dot-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  repository:
+    url: https://github.com/vfarcic/devops-catalog.git
+    branch: main
+    depth: 1
+    secretRef:
+      name: dot-ai-secrets
+      key: github-token
+  paths:
+    - "**/*.md"
+  schedule: "@every 24h"
+  mcpServer:
+    url: http://dot-ai.dot-ai.svc.cluster.local:3456
+    authSecretRef:
+      name: dot-ai-secrets
+      key: auth-token
+  metadata:
+    source: devops-catalog
+  deletionPolicy: Delete
