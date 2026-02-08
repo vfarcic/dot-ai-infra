@@ -54,6 +54,9 @@ spec:
               https:
                 enabled: true
                 hostname: ui.devopstoolkit.ai
+            timeouts:
+              request: ""
+              backendRequest: ""
   destination:
     server: https://kubernetes.default.svc
     namespace: dot-ai
