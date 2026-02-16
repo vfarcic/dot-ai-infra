@@ -4,7 +4,7 @@
     "nushell@0.110.0",
     "kubernetes-helm@3.19.1",
     "git@2.52.0",
-    "vals@0.43.1",
+    "vals@0.43.2",
     "yq-go@4.52.2",
     "kubectl-tree@0.4.6",
     "linode-cli@5.56.2"
