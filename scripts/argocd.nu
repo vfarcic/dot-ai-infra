@@ -38,6 +38,16 @@ def "main apply argocd" [
             }
             params: { "server.insecure": true }
         }
+        repoServer: {
+            livenessProbe: {
+                initialDelaySeconds: 30
+                timeoutSeconds: 5
+                periodSeconds: 10
+            }
+            readinessProbe: {
+                timeoutSeconds: 5
+            }
+        }
         server: {
             extraArgs: [
                 --insecure
