@@ -32,6 +32,11 @@
       "matchPackageNames": ["*"],
       "dependencyDashboardApproval": false,
       "description": "Auto-create PRs without dashboard approval"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "description": "Automerge minor and patch updates"
     }
   ],
   "customManagers": [
