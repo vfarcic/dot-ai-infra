@@ -15,7 +15,7 @@ spec:
       valuesObject:
         dot-ai:
           ai:
-            provider: anthropic_haiku
+            provider: anthropic
           controller:
             enabled: true
           extraEnv:
