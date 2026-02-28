@@ -1,11 +1,26 @@
 {
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "dot-ai"
+  ],
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "dot-ai skills generate --agent claude-code",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup"
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
-            "type": "command",
-            "command": ".claude/hooks/prd-done-changelog-reminder.sh"
+            "command": ".claude/hooks/prd-done-changelog-reminder.sh",
+            "type": "command"
           }
         ]
       }
@@ -28,9 +43,5 @@
       "Bash(gh issue list:*)",
       "Bash(gh issue view:*)"
     ]
-  },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "dot-ai"
-  ]
+  }
 }
