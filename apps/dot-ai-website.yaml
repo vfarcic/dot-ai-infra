@@ -20,3 +20,37 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: Certificate
+metadata:
+  name: dot-ai-website-certificate
+  namespace: dot-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  forProvider:
+    location: global
+    managed:
+      domains:
+        - devopstoolkit.ai
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: CertificateMapEntry
+metadata:
+  name: dot-ai-website-map-entry
+  namespace: dot-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  forProvider:
+    certificatesRefs:
+      - name: dot-ai-website-certificate
+    hostname: devopstoolkit.ai
+    map: devopstoolkit-map
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
