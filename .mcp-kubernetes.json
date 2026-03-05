@@ -2,10 +2,7 @@
   "mcpServers": {
     "dot-ai": {
       "type": "http",
-      "url": "https://dot-ai.devopstoolkit.ai",
-      "headers": {
-        "Authorization": "Bearer ${DOT_AI_AUTH_TOKEN}"
-      }
+      "url": "https://dot-ai.devopstoolkit.ai"
     }
   }
 }
