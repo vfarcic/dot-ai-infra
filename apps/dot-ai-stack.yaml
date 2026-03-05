@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: ghcr.io/vfarcic/dot-ai-stack/charts
     chart: dot-ai-stack
-    targetRevision: 0.58.0
+    targetRevision: 0.60.0
     helm:
       valuesObject:
         dot-ai:
@@ -18,6 +18,19 @@ spec:
             provider: anthropic
           controller:
             enabled: true
+          dex:
+            enabled: true
+            envFrom:
+              - secretRef:
+                  name: dex-google-oauth
+            connectors:
+              - type: google
+                id: google
+                name: Google
+                config:
+                  clientID: $GOOGLE_CLIENT_ID
+                  clientSecret: $GOOGLE_CLIENT_SECRET
+                  redirectURI: "https://dex.dot-ai.devopstoolkit.ai/callback"
           extraEnv:
             - name: DOT_AI_USER_PROMPTS_REPO
               value: "https://github.com/vfarcic/prompts"
