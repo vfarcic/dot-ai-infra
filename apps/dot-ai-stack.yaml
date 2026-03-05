@@ -50,6 +50,9 @@ spec:
             listeners:
               http:
                 hostname: dot-ai.devopstoolkit.ai
+              https:
+                enabled: true
+                hostname: dot-ai.devopstoolkit.ai
             timeouts:
               request: ""
               backendRequest: ""
