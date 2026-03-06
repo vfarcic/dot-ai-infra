@@ -22,6 +22,8 @@ spec:
             enabled: true
             envFrom:
               - secretRef:
+                  name: dex-credentials
+              - secretRef:
                   name: dex-google-oauth
             connectors:
               - type: google
