@@ -63,6 +63,8 @@ spec:
               request: ""
               backendRequest: ""
         dot-ai-ui:
+          dotAi:
+            url: https://dot-ai.devopstoolkit.ai
           uiAuth:
             secretRef:
               name: "dot-ai-secrets"
