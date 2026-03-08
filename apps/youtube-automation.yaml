@@ -1,0 +1,87 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: youtube-automation
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/vfarcic/youtube-automation.git
+    targetRevision: HEAD
+    path: helm/youtube-automation
+    helm:
+      valuesObject:
+        image:
+          tag: latest
+        existingSecret: youtube-automation-secrets
+        existingSecretKey: api-token
+        envFrom:
+          - secretRef:
+              name: youtube-automation-secrets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: youtube-automation
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: youtube-automation-secrets
+  namespace: youtube-automation
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: gcp-secret-manager
+    kind: ClusterSecretStore
+  target:
+    name: youtube-automation-secrets
+    creationPolicy: Owner
+  data:
+    - secretKey: api-token
+      remoteRef:
+        key: dot-ai-auth-token
+    - secretKey: ANTHROPIC_API_KEY
+      remoteRef:
+        key: anthropic-api-key
+    - secretKey: YOUTUBE_API_KEY
+      remoteRef:
+        key: youtube-api-key
+    - secretKey: YOUTUBE_TOKEN
+      remoteRef:
+        key: youtube-token
+    - secretKey: EMAIL_PASSWORD
+      remoteRef:
+        key: app-email-password
+    - secretKey: BLUESKY_PASSWORD
+      remoteRef:
+        key: bluesky-password
+    - secretKey: GITHUB_TOKEN
+      remoteRef:
+        key: github-token
+    - secretKey: GOOGLE_GENERATIVE_AI_API_KEY
+      remoteRef:
+        key: google-gemini-api-key
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: youtube-automation
+  namespace: youtube-automation
+spec:
+  parentRefs:
+    - name: main
+      namespace: gateway
+      sectionName: https
+  hostnames:
+    - youtube.devopstoolkit.ai
+  rules:
+    - backendRefs:
+        - name: youtube-automation
+          port: 80
