@@ -13,8 +13,6 @@ spec:
     path: helm/youtube-automation
     helm:
       valuesObject:
-        image:
-          tag: latest
         existingSecret: youtube-automation-secrets
         existingSecretKey: api-token
         env:
