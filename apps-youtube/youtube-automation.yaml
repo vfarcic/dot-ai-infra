@@ -115,6 +115,22 @@ spec:
     kind: ProviderConfig
     name: default
 ---
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: youtube-automation
+  namespace: youtube-automation
+spec:
+  default:
+    config:
+      type: HTTP
+      httpHealthCheck:
+        requestPath: /health
+  targetRef:
+    group: ""
+    kind: Service
+    name: youtube-automation
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -125,6 +141,9 @@ spec:
     - name: main
       namespace: gateway
       sectionName: https
+    - name: main
+      namespace: gateway
+      sectionName: http
   hostnames:
     - youtube.devopstoolkit.ai
   rules:
