@@ -18,6 +18,10 @@ spec:
         env:
           GIT_REPO_URL: https://github.com/vfarcic/devops-catalog
           GIT_BRANCH: master
+          GIT_AUTHOR_NAME: vfarcic
+          GIT_AUTHOR_EMAIL: viktor@farcic.com
+          GIT_COMMITTER_NAME: vfarcic
+          GIT_COMMITTER_EMAIL: viktor@farcic.com
         envFrom:
           - secretRef:
               name: youtube-automation-secrets
