@@ -69,6 +69,52 @@ spec:
       remoteRef:
         key: google-gemini-api-key
 ---
+apiVersion: gcp.m.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+  namespace: youtube-automation
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  projectID: vfarcic
+  credentials:
+    source: InjectedIdentity
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: Certificate
+metadata:
+  name: youtube-certificate
+  namespace: youtube-automation
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  forProvider:
+    location: global
+    managed:
+      domains:
+        - youtube.devopstoolkit.ai
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: CertificateMapEntry
+metadata:
+  name: youtube-map-entry
+  namespace: youtube-automation
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  forProvider:
+    certificatesRefs:
+      - name: youtube-certificate
+    hostname: youtube.devopstoolkit.ai
+    map: devopstoolkit-map
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
