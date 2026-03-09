@@ -26,7 +26,7 @@ spec:
           HUGO_REPO_URL: https://github.com/vfarcic/devopstoolkit-live
           HUGO_BRANCH: main
           GDRIVE_CREDENTIALS_FILE: /client_secret.json
-          GDRIVE_TOKEN_FILE: /root/.credentials/gdrive-go.json
+          GDRIVE_TOKEN_FILE: gdrive-go.json
         volumeMounts:
           - name: oauth-credentials
             mountPath: /client_secret.json
@@ -34,7 +34,6 @@ spec:
             readOnly: true
           - name: oauth-tokens
             mountPath: /root/.credentials
-            readOnly: true
         volumes:
           - name: oauth-credentials
             secret:
