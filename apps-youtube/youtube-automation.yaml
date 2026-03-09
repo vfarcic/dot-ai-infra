@@ -81,7 +81,7 @@ spec:
         key: github-token
     - secretKey: SLACK_API_TOKEN
       remoteRef:
-        key: slack-webhook-url
+        key: slack-api-token
 ---
 apiVersion: gcp.m.upbound.io/v1beta1
 kind: ProviderConfig
