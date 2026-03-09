@@ -23,6 +23,8 @@ spec:
           GIT_COMMITTER_NAME: vfarcic
           GIT_COMMITTER_EMAIL: viktor@farcic.com
           ANTHROPIC_MODEL: claude-sonnet-4-5-20250929
+          HUGO_REPO_URL: https://github.com/vfarcic/devopstoolkit-live
+          HUGO_BRANCH: main
         envFrom:
           - secretRef:
               name: youtube-automation-secrets
@@ -77,6 +79,9 @@ spec:
     - secretKey: GIT_TOKEN
       remoteRef:
         key: github-token
+    - secretKey: SLACK_API_TOKEN
+      remoteRef:
+        key: slack-webhook-url
 ---
 apiVersion: gcp.m.upbound.io/v1beta1
 kind: ProviderConfig
