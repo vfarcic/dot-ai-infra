@@ -1,0 +1,35 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dotai-recommend-operate-readonly
+rules:
+  - apiGroups: ["dot-ai.devopstoolkit.ai"]
+    resources: ["tools"]
+    resourceNames: ["recommend", "operate"]
+    verbs: ["execute"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dot-ai-admin-viktor
+subjects:
+  - kind: User
+    name: viktor@farcic.com
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: dotai-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dot-ai-limited-devopstoolkit
+subjects:
+  - kind: User
+    name: devopstoolkit@farcic.com
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: dotai-recommend-operate-readonly
+  apiGroup: rbac.authorization.k8s.io
