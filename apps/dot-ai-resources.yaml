@@ -24,6 +24,8 @@ spec:
       namespace: infra
     - type: Warning
       namespace: traefik
+    - type: Warning
+      namespace: youtube-automation
   notifications:
     slack:
       enabled: true
