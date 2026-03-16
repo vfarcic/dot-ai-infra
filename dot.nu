@@ -5,7 +5,6 @@ source scripts/common.nu
 source scripts/argocd.nu
 source scripts/ingress.nu
 source scripts/dot-ai.nu
-source scripts/cert-manager.nu
 def main [] {}
 
 def "main setup" [] {
@@ -14,10 +13,6 @@ def "main setup" [] {
     "export PROJECT_ID=vfarcic\n" | save --append .env
 
     main create kubernetes google --name dot-ai --min-nodes 3 --node-size small --auth false
-
-    main apply certmanager
-
-    # main apply ingress traefik --provider google
 
     kubectl create namespace infra
 

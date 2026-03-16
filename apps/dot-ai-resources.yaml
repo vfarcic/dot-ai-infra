@@ -15,15 +15,11 @@ spec:
     - type: Warning
       namespace: argocd
     - type: Warning
-      namespace: cert-manager
-    - type: Warning
       namespace: dot-ai
     - type: Warning
       namespace: examples
     - type: Warning
       namespace: infra
-    - type: Warning
-      namespace: traefik
     - type: Warning
       namespace: youtube-automation
   notifications:
