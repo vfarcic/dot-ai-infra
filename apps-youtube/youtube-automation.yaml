@@ -172,7 +172,7 @@ metadata:
   namespace: youtube-automation
 spec:
   default:
-    timeoutSec: 300
+    timeoutSec: 3600
   targetRef:
     group: ""
     kind: Service
