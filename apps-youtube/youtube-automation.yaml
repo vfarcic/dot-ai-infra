@@ -26,6 +26,7 @@ spec:
           EMAIL_FROM: viktor@farcic.com
           EMAIL_THUMBNAIL_TO: pavle.farcic@gmail.com
           EMAIL_EDIT_TO: devopstoolkit@farcic.com
+          EMAIL_FINANCE_TO: devopstoolkit@farcic.com
           HUGO_REPO_URL: https://github.com/vfarcic/devopstoolkit-live
           HUGO_BRANCH: main
           GDRIVE_CREDENTIALS_FILE: /client_secret.json
