@@ -31,6 +31,7 @@ spec:
           GDRIVE_CREDENTIALS_FILE: /client_secret.json
           GDRIVE_TOKEN_FILE: gdrive-go.json
           GDRIVE_FOLDER_ID: "0AK6Oeg1IJ0QEUk9PVA"
+          YOUTUBE_CHANNEL_ID: UCfz8x0lVzJpb_dgWm9kPVrw
         volumeMounts:
           - name: oauth-credentials
             mountPath: /client_secret.json
