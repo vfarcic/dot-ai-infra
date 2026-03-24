@@ -6,7 +6,7 @@
     "git@2.53.0",
     "yq-go@4.52.4",
     "vals@0.43.7",
-    "kubectl-tree@0.4.6",
+    "kubectl-tree@0.5.0",
     "linode-cli@5.56.2"
   ],
   "shell": {
