@@ -33,6 +33,7 @@ spec:
           GDRIVE_TOKEN_FILE: gdrive-go.json
           GDRIVE_FOLDER_ID: "0AK6Oeg1IJ0QEUk9PVA"
           YOUTUBE_CHANNEL_ID: UCfz8x0lVzJpb_dgWm9kPVrw
+          BLUESKY_IDENTIFIER: vfarcic
         volumeMounts:
           - name: oauth-credentials
             mountPath: /client_secret.json
@@ -89,9 +90,6 @@ spec:
     - secretKey: EMAIL_PASSWORD
       remoteRef:
         key: app-email-password
-    - secretKey: BLUESKY_IDENTIFIER
-      remoteRef:
-        key: bluesky-identifier
     - secretKey: BLUESKY_PASSWORD
       remoteRef:
         key: bluesky-password
