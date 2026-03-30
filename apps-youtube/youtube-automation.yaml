@@ -89,6 +89,9 @@ spec:
     - secretKey: EMAIL_PASSWORD
       remoteRef:
         key: app-email-password
+    - secretKey: BLUESKY_IDENTIFIER
+      remoteRef:
+        key: bluesky-identifier
     - secretKey: BLUESKY_PASSWORD
       remoteRef:
         key: bluesky-password
