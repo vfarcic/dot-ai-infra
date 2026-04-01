@@ -7,7 +7,8 @@
     "yq-go@4.52.5",
     "vals@0.43.7",
     "kubectl-tree@0.5.0",
-    "linode-cli@5.56.2"
+    "linode-cli@5.56.2",
+    "path:gcloud#google-cloud-sdk"
   ],
   "shell": {
     "init_hook": [
@@ -15,6 +16,8 @@
       "[ -n \"$USE_VALS\" ] && eval \"$(vals env -export -f .env.vals.yaml)\"",
       "[ -f .env ] && source .env"
     ],
-    "scripts": {}
+    "scripts": {
+      "agent": ["claude"]
+    }
   }
 }
