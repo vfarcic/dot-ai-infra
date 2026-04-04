@@ -1,0 +1,24 @@
+[[modes]]
+name = "kubernetes-operations"
+shell_init = "devbox shell"
+
+[[modes.panes]]
+command = "kubectl get applications -n argocd -w"
+name = "ArgoCD Apps"
+
+[[modes.panes]]
+command = "kubectl get events -A -w"
+name = "Events"
+
+[[modes.rules]]
+pattern = "kubectl\\s+.*(describe|explain)"
+watch = false
+
+[[modes.rules]]
+pattern = "kubectl\\s+.*(get|top|logs)"
+watch = true
+interval = 2
+
+[[modes.rules]]
+pattern = "helm\\s+.*(status|list)"
+watch = false

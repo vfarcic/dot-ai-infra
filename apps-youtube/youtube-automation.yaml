@@ -22,7 +22,7 @@ spec:
           GIT_AUTHOR_EMAIL: viktor@farcic.com
           GIT_COMMITTER_NAME: vfarcic
           GIT_COMMITTER_EMAIL: viktor@farcic.com
-          ANTHROPIC_MODEL: claude-sonnet-4-5-20250929
+          ANTHROPIC_MODEL: claude-sonnet-4-6-20250514
           EMAIL_FROM: viktor@farcic.com
           EMAIL_THUMBNAIL_TO: pavle.farcic@gmail.com
           EMAIL_EDIT_TO: devopstoolkit@farcic.com
