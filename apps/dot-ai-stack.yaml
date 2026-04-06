@@ -93,3 +93,81 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: dot-ai-vpa
+  namespace: dot-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dot-ai
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: dot-ai-controller-manager-vpa
+  namespace: dot-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dot-ai-controller-manager
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: dot-ai-stack-dex-vpa
+  namespace: dot-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dot-ai-stack-dex
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: dot-ai-stack-agentic-tools-vpa
+  namespace: dot-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dot-ai-stack-agentic-tools
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: dot-ai-ui-vpa
+  namespace: dot-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dot-ai-ui
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: qdrant-vpa
+  namespace: dot-ai
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: dot-ai-stack-qdrant
+  updatePolicy:
+    updateMode: "Off"
