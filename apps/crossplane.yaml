@@ -22,3 +22,29 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: crossplane-vpa
+  namespace: crossplane-system
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: crossplane
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: crossplane-rbac-manager-vpa
+  namespace: crossplane-system
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: crossplane-rbac-manager
+  updatePolicy:
+    updateMode: "Off"
