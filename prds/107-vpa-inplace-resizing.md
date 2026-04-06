@@ -76,14 +76,15 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 - [x] **VPA operator installed via GKE managed addon** — Enabled VPA on the GKE cluster using `gcloud container clusters update --enable-vertical-pod-autoscaling` (GKE-managed, auto-updated by Google). Updated `scripts/kubernetes.nu` with `--enable-vertical-pod-autoscaling` flag for future cluster creation. VPA CRD (`autoscaling.k8s.io/v1`) is available and functional.
 - [x] **VPA objects created in Off mode for all workloads** — Created 22 VPA resources in Off mode across all namespaces, co-located with their respective Argo CD Application manifests in `apps/` and `apps-youtube/`. A new `apps/argocd-vpa.yaml` was created for the 7 Argo CD component VPAs. All VPAs are producing recommendations via `kubectl get vpa -A`.
 
-### Phase 2: In-Place Resize Validation
+### Phase 2: VPA Auto Mode Canary + Validation
 
 - [x] ~~**Kyverno installed via Argo CD**~~ — Removed. Kyverno was originally added to inject `resizePolicy` into pods, but Kubernetes defaults `resizePolicy[*].restartPolicy` to `NotRequired` when unset, making Kyverno unnecessary. See decision log entry 2026-04-06 "Remove Kyverno".
-- [ ] **In-place resize validated** — Manually adjust resources on stateful/critical workloads (Prometheus, Qdrant, Argo CD application-controller, Grafana) and confirm the resize status field shows `""` (completed) without pod restart. Verify workloads remain healthy during and after resize.
+- [ ] **Single canary workload switched to VPA Auto** — Switch `youtube-automation` to `updateMode: "Auto"` as a canary. This validates end-to-end that VPA Auto sets resource requests and in-place resize applies them without pod restarts. youtube-automation is ideal: stable, low-traffic, heavily over-provisioned (requests 100m/128Mi, uses 1m/22Mi), and non-critical.
+- [ ] **Canary validated** — Confirm VPA updated the resource requests on youtube-automation, the pod resized in-place (no restart), and the workload remains healthy.
 
-### Phase 3: VPA Auto Mode for Stable Workloads
+### Phase 3: VPA Auto Mode Rollout
 
-- [ ] **Stable workloads switched to VPA Auto** — Move external-secrets, dex, dot-ai-website, node-exporter, jaeger, crossplane-rbac-manager, argocd-redis, argocd-notifications, argocd-applicationset, argocd-dex-server, youtube-automation to `updateMode: "Auto"`. These are low-traffic, predictable workloads where automatic right-sizing is safe.
+- [ ] **Stable workloads switched to VPA Auto** — Move external-secrets, dex, dot-ai-website, node-exporter, jaeger, crossplane-rbac-manager, argocd-redis, argocd-notifications, argocd-applicationset, argocd-dex-server to `updateMode: "Auto"`. These are low-traffic, predictable workloads where automatic right-sizing is safe.
 - [ ] **In-place resize verified for Auto-mode workloads** — Confirm VPA-driven resource changes apply without pod restarts (Kubernetes defaults `resizePolicy` to `NotRequired`).
 
 ### Phase 4: Full Rollout + Monitoring
@@ -135,6 +136,14 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 **Rationale**: Kyverno was added solely to inject `resizePolicy` into all pod containers. Investigation of the Kubernetes documentation confirmed that the default value when `resizePolicy` is unspecified is already `NotRequired` for both CPU and memory. This makes the Kyverno mutating policy unnecessary overhead — three controllers, webhook infrastructure, and CRDs for a field that already has the desired default.
 
 **Impact**: Removed `apps/kyverno.yaml` (Argo CD Application + 3 VPA objects). Phase 2 simplified to just in-place resize validation. Kyverno removed from dependencies. Phase 3 verification task updated to reflect that no policy injection is needed.
+
+### 2026-04-06: Skip manual resize — validate with VPA Auto canary instead
+
+**Decision**: Remove the separate manual in-place resize validation task. Instead, switch a single canary workload (youtube-automation) to VPA Auto and validate that VPA-driven resize works end-to-end without restarts.
+
+**Rationale**: Manual resize only proves the Kubernetes feature works in isolation. What matters is whether VPA Auto can resize pods without restarts end-to-end. Testing with a single low-risk workload validates both in-place resize and VPA Auto in one step, reducing Phase 2 to a single meaningful validation.
+
+**Impact**: Phase 2 simplified from "manual resize then VPA Auto" to "canary VPA Auto validates everything." Phase 3 becomes the broader rollout to remaining stable workloads.
 
 ## Dependencies
 
