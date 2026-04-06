@@ -78,7 +78,7 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 
 ### Phase 2: In-Place Resizing via Kyverno Mutating Policy
 
-- [ ] **Kyverno installed via Argo CD** — Deploy Kyverno as an Argo CD Application in `apps/kyverno.yaml` using the official Helm chart. This provides a policy engine with mutating webhook capabilities, managed entirely through GitOps.
+- [x] **Kyverno installed via Argo CD** — Deployed Kyverno v3.3.4 as an Argo CD Application in `apps/kyverno.yaml` using the official Helm chart. Reports controller and cleanup hooks disabled (unused, and hooks depended on unavailable bitnami/kubectl image). All 3 controllers (admission, background, cleanup) running healthy with mutating webhooks registered. VPA objects in Off mode co-located and producing recommendations.
 - [ ] **Kyverno mutating policy injects resizePolicy on all pods** — Create a Kyverno ClusterPolicy that automatically adds `resizePolicy: [{resourceName: cpu, restartPolicy: NotRequired}, {resourceName: memory, restartPolicy: NotRequired}]` to all containers in all pods cluster-wide. This eliminates the need for per-chart Helm value support or manual patching.
 - [ ] **In-place resize validated** — Manually adjust resources on stateful/critical workloads (Prometheus, Qdrant, Argo CD application-controller, Grafana) and confirm the resize status field shows `""` (completed) without pod restart. Verify workloads remain healthy during and after resize.
 
