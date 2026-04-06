@@ -76,15 +76,16 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 - [x] **VPA operator installed via GKE managed addon** — Enabled VPA on the GKE cluster using `gcloud container clusters update --enable-vertical-pod-autoscaling` (GKE-managed, auto-updated by Google). Updated `scripts/kubernetes.nu` with `--enable-vertical-pod-autoscaling` flag for future cluster creation. VPA CRD (`autoscaling.k8s.io/v1`) is available and functional.
 - [x] **VPA objects created in Off mode for all workloads** — Created 22 VPA resources in Off mode across all namespaces, co-located with their respective Argo CD Application manifests in `apps/` and `apps-youtube/`. A new `apps/argocd-vpa.yaml` was created for the 7 Argo CD component VPAs. All VPAs are producing recommendations via `kubectl get vpa -A`.
 
-### Phase 2: In-Place Resizing for Stateful/Critical Workloads
+### Phase 2: In-Place Resizing via Kyverno Mutating Policy
 
-- [ ] **resizePolicy added to stateful/critical workloads** — Add `resizePolicy: [{resourceName: cpu, restartPolicy: NotRequired}, {resourceName: memory, restartPolicy: NotRequired}]` to Prometheus, Qdrant, Argo CD application-controller, and Grafana containers. This enables resource changes without pod restarts.
-- [ ] **In-place resize validated** — Manually adjust resources on each target and confirm the resize status field shows `""` (completed) without pod restart. Verify workloads remain healthy during and after resize.
+- [ ] **Kyverno installed via Argo CD** — Deploy Kyverno as an Argo CD Application in `apps/kyverno.yaml` using the official Helm chart. This provides a policy engine with mutating webhook capabilities, managed entirely through GitOps.
+- [ ] **Kyverno mutating policy injects resizePolicy on all pods** — Create a Kyverno ClusterPolicy that automatically adds `resizePolicy: [{resourceName: cpu, restartPolicy: NotRequired}, {resourceName: memory, restartPolicy: NotRequired}]` to all containers in all pods cluster-wide. This eliminates the need for per-chart Helm value support or manual patching.
+- [ ] **In-place resize validated** — Manually adjust resources on stateful/critical workloads (Prometheus, Qdrant, Argo CD application-controller, Grafana) and confirm the resize status field shows `""` (completed) without pod restart. Verify workloads remain healthy during and after resize.
 
 ### Phase 3: VPA Auto Mode for Stable Workloads
 
 - [ ] **Stable workloads switched to VPA Auto** — Move external-secrets, dex, dot-ai-website, node-exporter, jaeger, crossplane-rbac-manager, argocd-redis, argocd-notifications, argocd-applicationset, argocd-dex-server, youtube-automation to `updateMode: "Auto"`. These are low-traffic, predictable workloads where automatic right-sizing is safe.
-- [ ] **In-place resize enabled for Auto-mode workloads** — Add `resizePolicy` to all VPA Auto workloads so that VPA-driven changes apply without restarts where possible.
+- [ ] **In-place resize verified for Auto-mode workloads** — Confirm Kyverno policy is injecting `resizePolicy` on Auto-mode workload pods so VPA-driven changes apply without restarts.
 
 ### Phase 4: Full Rollout + Monitoring
 
@@ -120,11 +121,20 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 
 **Impact**: Phase 1 reduced from 3 tasks to 2. The overall flow becomes: install VPA → observe in Off mode → review recommendations → enable Auto mode (which sets requests automatically). Success criteria updated to reflect VPA-managed resources rather than manually configured ones.
 
+### 2026-04-06: Use Kyverno mutating policy for resizePolicy instead of per-workload patching
+
+**Decision**: Install Kyverno as an Argo CD Application and use a ClusterPolicy to inject `resizePolicy` into all pod containers cluster-wide, instead of patching each workload individually via kubectl or Helm values.
+
+**Rationale**: `resizePolicy` is a container-level pod spec field that most upstream Helm charts (kube-prometheus-stack, argo-cd) don't expose as a configurable value. Per-workload kubectl patches are not GitOps-compatible — they require operational scripts outside the Argo CD flow. A Kyverno mutating webhook solves this cluster-wide in a single policy, works for all charts regardless of value support, and is fully managed through Argo CD like everything else in this repo.
+
+**Impact**: Phase 2 restructured: install Kyverno → deploy mutating policy → validate in-place resize. Removes need for per-chart resizePolicy support. Phase 3 task "In-place resize enabled for Auto-mode workloads" simplified to verification only (Kyverno already handles injection). Added Kyverno as a dependency.
+
 ## Dependencies
 
 - GKE 1.33+ (already running) — required for in-place resize beta
 - VPA operator compatible with GKE 1.33
-- Argo CD for GitOps deployment of VPA resources
+- Kyverno — policy engine for mutating webhook to inject resizePolicy cluster-wide
+- Argo CD for GitOps deployment of VPA resources and Kyverno
 - Prometheus/Grafana for monitoring (already deployed)
 
 ## Out of Scope
