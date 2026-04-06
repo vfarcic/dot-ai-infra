@@ -73,7 +73,7 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 
 ### Phase 1: VPA Installation + Baseline Resource Limits
 
-- [ ] **VPA operator installed via Argo CD** — Deploy VPA (recommender, updater, admission-controller) as an Argo CD Application in `apps/`. Updater runs but VPA objects use `updateMode: "Off"` so no automatic changes occur.
+- [x] **VPA operator installed via GKE managed addon** — Enabled VPA on the GKE cluster using `gcloud container clusters update --enable-vertical-pod-autoscaling` (GKE-managed, auto-updated by Google). Updated `scripts/kubernetes.nu` with `--enable-vertical-pod-autoscaling` flag for future cluster creation. VPA CRD (`autoscaling.k8s.io/v1`) is available and functional.
 - [ ] **All workloads have resource requests and limits** — Add sensible requests/limits to the ~15 workloads that currently have none, based on observed metrics (with 2-3x headroom). Right-size the obviously over-provisioned workloads (dot-ai-website, crossplane-rbac-manager, etc.).
 - [ ] **VPA objects created in Off mode for all workloads** — Create VPA resources targeting every Deployment, StatefulSet, and DaemonSet. Mode is `Off` so VPA only produces recommendations without acting. Recommendations are visible via `kubectl get vpa` and can feed into Grafana dashboards.
 
