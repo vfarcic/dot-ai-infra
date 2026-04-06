@@ -1,0 +1,90 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argocd-application-controller-vpa
+  namespace: argocd
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: argocd-application-controller
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argocd-repo-server-vpa
+  namespace: argocd
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argocd-repo-server
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argocd-server-vpa
+  namespace: argocd
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argocd-server
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argocd-redis-vpa
+  namespace: argocd
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argocd-redis
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argocd-notifications-controller-vpa
+  namespace: argocd
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argocd-notifications-controller
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argocd-applicationset-controller-vpa
+  namespace: argocd
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argocd-applicationset-controller
+  updatePolicy:
+    updateMode: "Off"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argocd-dex-server-vpa
+  namespace: argocd
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argocd-dex-server
+  updatePolicy:
+    updateMode: "Off"
