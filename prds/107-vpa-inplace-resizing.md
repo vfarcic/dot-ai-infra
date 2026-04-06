@@ -74,7 +74,7 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 ### Phase 1: VPA Installation + Observation
 
 - [x] **VPA operator installed via GKE managed addon** — Enabled VPA on the GKE cluster using `gcloud container clusters update --enable-vertical-pod-autoscaling` (GKE-managed, auto-updated by Google). Updated `scripts/kubernetes.nu` with `--enable-vertical-pod-autoscaling` flag for future cluster creation. VPA CRD (`autoscaling.k8s.io/v1`) is available and functional.
-- [ ] **VPA objects created in Off mode for all workloads** — Create VPA resources targeting every Deployment, StatefulSet, and DaemonSet. Mode is `Off` so VPA only produces recommendations without acting. Recommendations are visible via `kubectl get vpa` and can feed into Grafana dashboards.
+- [x] **VPA objects created in Off mode for all workloads** — Created 22 VPA resources in Off mode across all namespaces, co-located with their respective Argo CD Application manifests in `apps/` and `apps-youtube/`. A new `apps/argocd-vpa.yaml` was created for the 7 Argo CD component VPAs. All VPAs are producing recommendations via `kubectl get vpa -A`.
 
 ### Phase 2: In-Place Resizing for Stateful/Critical Workloads
 
