@@ -71,10 +71,9 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 
 ## Milestones
 
-### Phase 1: VPA Installation + Baseline Resource Limits
+### Phase 1: VPA Installation + Observation
 
 - [x] **VPA operator installed via GKE managed addon** — Enabled VPA on the GKE cluster using `gcloud container clusters update --enable-vertical-pod-autoscaling` (GKE-managed, auto-updated by Google). Updated `scripts/kubernetes.nu` with `--enable-vertical-pod-autoscaling` flag for future cluster creation. VPA CRD (`autoscaling.k8s.io/v1`) is available and functional.
-- [ ] **All workloads have resource requests and limits** — Add sensible requests/limits to the ~15 workloads that currently have none, based on observed metrics (with 2-3x headroom). Right-size the obviously over-provisioned workloads (dot-ai-website, crossplane-rbac-manager, etc.).
 - [ ] **VPA objects created in Off mode for all workloads** — Create VPA resources targeting every Deployment, StatefulSet, and DaemonSet. Mode is `Off` so VPA only produces recommendations without acting. Recommendations are visible via `kubectl get vpa` and can feed into Grafana dashboards.
 
 ### Phase 2: In-Place Resizing for Stateful/Critical Workloads
@@ -95,7 +94,7 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 
 ## Success Criteria
 
-1. **All workloads have resource requests and limits** — Zero workloads running without defined resources
+1. **All workloads have VPA-managed resource requests** — VPA in Auto mode sets and maintains resource requests based on observed usage, eliminating manual guesswork
 2. **Resource waste reduced by >60%** — Total requested resources across the cluster are within 2-3x of actual usage (down from current 5-100x)
 3. **No restart-induced outages during resizing** — Stateful workloads (Prometheus, Qdrant) resize in-place without data loss or monitoring gaps
 4. **VPA Auto covers >50% of workloads** — Majority of stable workloads are automatically right-sized
@@ -110,6 +109,16 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 | VPA conflicts with HPA | Unpredictable scaling behavior | No HPAs exist currently; if HPA is added later, use VPA only for memory and let HPA handle CPU |
 | Crossplane/Argo CD helm charts override resource settings | VPA changes get reverted on sync | Configure VPA `containerPolicies` with appropriate bounds; for Helm-managed resources, set resources in Helm values so Argo CD and VPA don't conflict |
 | GKE in-place resize beta stability | Unexpected behavior | Feature is beta since 1.32 and enabled by default on GKE; monitor for issues and have restart-based fallback |
+
+## Decision Log
+
+### 2026-04-06: Skip manual resource baseline — let VPA observe and set resources
+
+**Decision**: Removed the Phase 1 task "All workloads have resource requests and limits" (manual baseline). Instead, go directly to VPA Off mode for observation, then let VPA Auto set the correct values automatically.
+
+**Rationale**: VPA in Off mode can observe actual usage and produce recommendations without needing pre-existing requests/limits. Manually setting baseline values with 2-3x multipliers is unnecessary work — VPA will overwrite them when switched to Auto mode. Letting VPA handle it produces data-driven values rather than human guesses. CPU limits in particular cause unnecessary throttling and should be avoided; VPA manages requests intelligently without the downsides of static limits.
+
+**Impact**: Phase 1 reduced from 3 tasks to 2. The overall flow becomes: install VPA → observe in Off mode → review recommendations → enable Auto mode (which sets requests automatically). Success criteria updated to reflect VPA-managed resources rather than manually configured ones.
 
 ## Dependencies
 
