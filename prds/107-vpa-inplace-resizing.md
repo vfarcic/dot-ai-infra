@@ -1,6 +1,6 @@
 # PRD #107: VPA and In-Place Pod Resizing for Cluster Resource Optimization
 
-**Status**: Draft
+**Status**: In Progress
 **Priority**: High
 **Created**: 2026-04-06
 **GitHub Issue**: [#107](https://github.com/vfarcic/dot-ai-infra/issues/107)
@@ -21,7 +21,7 @@ This wastes cluster capacity, risks OOM kills and CPU throttling, and makes cost
 
 ## Solution Overview
 
-Implement Vertical Pod Autoscaler (VPA) progressively from `Off` to `Auto` mode, combined with Kubernetes in-place pod resizing (available since K8s 1.32 beta, enabled by default on GKE 1.33), to automatically right-size workloads without restarts.
+Implement Vertical Pod Autoscaler (VPA) progressively from `Off` to `InPlaceOrRecreate` mode (available on GKE 1.34+), combined with Kubernetes in-place pod resizing, to automatically right-size workloads. VPA attempts in-place resize first and falls back to pod recreation when needed.
 
 The phased approach ensures safety: observe first, then automate stable workloads, while keeping manual control over bursty/critical ones.
 
@@ -79,17 +79,17 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 ### Phase 2: VPA Auto Mode Canary + Validation
 
 - [x] ~~**Kyverno installed via Argo CD**~~ — Removed. Kyverno was originally added to inject `resizePolicy` into pods, but Kubernetes defaults `resizePolicy[*].restartPolicy` to `NotRequired` when unset, making Kyverno unnecessary. See decision log entry 2026-04-06 "Remove Kyverno".
-- [ ] **Single canary workload switched to VPA Auto** — Switch `youtube-automation` to `updateMode: "Auto"` as a canary. This validates end-to-end that VPA Auto sets resource requests and in-place resize applies them without pod restarts. youtube-automation is ideal: stable, low-traffic, heavily over-provisioned (requests 100m/128Mi, uses 1m/22Mi), and non-critical.
-- [ ] **Canary validated** — Confirm VPA updated the resource requests on youtube-automation, the pod resized in-place (no restart), and the workload remains healthy.
+- [x] **Canary workloads switched to VPA InPlaceOrRecreate** — Switched youtube-automation, jaeger, and dot-ai-website to `updateMode: "InPlaceOrRecreate"` with `minReplicas: 1`. Initially tested with `Auto` mode, then upgraded to `InPlaceOrRecreate` after cluster upgraded to GKE 1.34.6. All three VPAs include `minReplicas: 1` (required for single-replica deployments — VPA updater defaults to requiring 2+ replicas).
+- [x] **Canary validated** — VPA applied recommendations to all three canary workloads: youtube-automation (100m/128Mi → 2m/41Mi), jaeger (none → 35m/372Mi), dot-ai-website (100m/128Mi → 2m/28Mi). All pods healthy after resize. VPA fell back to pod recreation (not in-place resize) for the initial large right-sizing — in-place resize is expected only for incremental adjustments on already-right-sized pods. See decision log entries 2026-04-08.
 
-### Phase 3: VPA Auto Mode Rollout
+### Phase 3: VPA InPlaceOrRecreate Rollout
 
-- [ ] **Stable workloads switched to VPA Auto** — Move external-secrets, dex, dot-ai-website, node-exporter, jaeger, crossplane-rbac-manager, argocd-redis, argocd-notifications, argocd-applicationset, argocd-dex-server to `updateMode: "Auto"`. These are low-traffic, predictable workloads where automatic right-sizing is safe.
-- [ ] **In-place resize verified for Auto-mode workloads** — Confirm VPA-driven resource changes apply without pod restarts (Kubernetes defaults `resizePolicy` to `NotRequired`).
+- [ ] **Stable workloads switched to VPA InPlaceOrRecreate** — Move external-secrets, dex, node-exporter, crossplane-rbac-manager, argocd-redis, argocd-notifications, argocd-applicationset, argocd-dex-server to `updateMode: "InPlaceOrRecreate"` with `minReplicas: 1`. (dot-ai-website and jaeger already switched in Phase 2 canary.) These are low-traffic, predictable workloads where automatic right-sizing is safe.
+- [ ] **In-place resize verified for InPlaceOrRecreate workloads** — Confirm VPA-driven incremental resource changes apply in-place without pod restarts on already-right-sized pods. Initial right-sizing will use recreation; subsequent adjustments should use in-place resize.
 
 ### Phase 4: Full Rollout + Monitoring
 
-- [ ] **Remaining workloads graduated to appropriate VPA mode** — Move bursty workloads to `Initial` mode (sets resources on pod creation but doesn't update running pods). Move infrastructure workloads to `Auto` with conservative policies (minAllowed/maxAllowed bounds). Keep only truly unpredictable workloads (dot-ai MCP server) in `Off` mode with manual review.
+- [ ] **Remaining workloads graduated to appropriate VPA mode** — Move bursty workloads to `Initial` mode (sets resources on pod creation but doesn't update running pods). Move infrastructure workloads to `InPlaceOrRecreate` with conservative policies (minAllowed/maxAllowed bounds) and `minReplicas: 1`. Keep only truly unpredictable workloads (dot-ai MCP server) in `Off` mode with manual review.
 - [ ] **VPA monitoring and alerting in place** — Grafana dashboard showing VPA recommendations vs actual usage per workload, with alerts for significant recommendation drift (>50% difference sustained over 24h).
 - [ ] **Resource governance documented** — Document the VPA policy: which workloads get Auto vs Initial vs Off, how to add VPA to new workloads, and the review process for manual-mode workloads.
 
@@ -145,10 +145,34 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 
 **Impact**: Phase 2 simplified from "manual resize then VPA Auto" to "canary VPA Auto validates everything." Phase 3 becomes the broader rollout to remaining stable workloads.
 
+### 2026-04-08: Use InPlaceOrRecreate mode instead of Auto (GKE 1.34+)
+
+**Decision**: Switch VPA update mode from `Auto` to `InPlaceOrRecreate` after cluster upgraded to GKE 1.34.6. This mode attempts in-place pod resizing first and falls back to pod recreation when in-place resize isn't possible.
+
+**Rationale**: Standard `Auto` mode only supports evict-and-recreate. `InPlaceOrRecreate` (available on GKE 1.34+) leverages the Kubernetes in-place pod resize feature, avoiding unnecessary pod restarts for incremental resource adjustments. Initial large right-sizing still triggers recreation, but subsequent adjustments on already-right-sized pods should resize in-place.
+
+**Impact**: All VPA objects use `InPlaceOrRecreate` instead of `Auto`. Phase 3 and 4 task descriptions updated to reflect the new mode. Dependencies updated to require GKE 1.34+ instead of 1.33+.
+
+### 2026-04-08: Add minReplicas: 1 for single-replica deployments
+
+**Decision**: Add `minReplicas: 1` to all VPA `updatePolicy` specs. VPA's updater defaults to requiring at least 2 replicas before it will resize or evict a pod (`--min-replicas=2`). Since all workloads in this cluster are single-replica, the updater was silently skipping every pod.
+
+**Rationale**: Discovered during canary validation — VPA recommendations were correct but the updater never acted. Investigation revealed the updater logs `"Too few replicas"` for pods with fewer than `minReplicas` (default 2). Setting `minReplicas: 1` in each VPA object overrides this per-VPA. This is documented in kubernetes/autoscaler#8609.
+
+**Impact**: All VPA objects (canary and future) must include `minReplicas: 1`. This is a required setting for any single-replica deployment using VPA Auto or InPlaceOrRecreate mode.
+
+### 2026-04-08: In-place resize is incremental — initial right-sizing uses recreation
+
+**Decision**: Accept that VPA's initial right-sizing of over-provisioned workloads will recreate pods, not resize in-place. True in-place resize is expected only for small incremental adjustments on already-right-sized pods.
+
+**Rationale**: Canary testing showed all three workloads (youtube-automation, jaeger, dot-ai-website) were recreated rather than resized in-place, even with `InPlaceOrRecreate` mode. Large resource decreases (e.g., 100m→2m CPU, 128Mi→28Mi memory) exceed what the kubelet can safely resize in-place — particularly memory decreases where current usage may exceed the new limit. VPA falls back to recreation after a timeout.
+
+**Impact**: Success criteria #3 ("No restart-induced outages during resizing") reframed — initial rollout will involve pod recreation for over-provisioned workloads. In-place resize benefit applies to ongoing maintenance after initial right-sizing. Stateful workloads (Prometheus, Qdrant) should be switched last and monitored carefully during the initial recreation.
+
 ## Dependencies
 
-- GKE 1.33+ (already running) — required for in-place resize beta
-- VPA operator compatible with GKE 1.33
+- GKE 1.34+ (running 1.34.6) — required for VPA InPlaceOrRecreate mode
+- VPA operator (GKE managed addon, runs on control plane)
 - Argo CD for GitOps deployment of VPA resources
 - Prometheus/Grafana for monitoring (already deployed)
 
