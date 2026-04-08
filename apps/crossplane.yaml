@@ -47,4 +47,5 @@ spec:
     kind: Deployment
     name: crossplane-rbac-manager
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1

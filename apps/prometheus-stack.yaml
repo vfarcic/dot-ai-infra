@@ -201,7 +201,8 @@ spec:
     kind: DaemonSet
     name: prometheus-stack-prometheus-node-exporter
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
