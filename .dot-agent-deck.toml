@@ -1,24 +1,24 @@
 [[modes]]
-name = "kubernetes-operations"
-shell_init = "devbox shell"
+name = "gitops-ops"
 
 [[modes.panes]]
-command = "kubectl get applications -n argocd -w"
-name = "ArgoCD Apps"
-
-[[modes.panes]]
-command = "kubectl get events -A -w"
-name = "Events"
+command = "kubectl get apps -n argocd -w"
+name = "Argo CD Apps"
 
 [[modes.rules]]
-pattern = "kubectl\\s+.*(describe|explain)"
+pattern = "kubectl\\s+(describe|explain)"
 watch = false
 
 [[modes.rules]]
-pattern = "kubectl\\s+.*(get|top|logs)"
+pattern = "kubectl\\s+(get|top)"
 watch = true
-interval = 2
+interval = 5
 
 [[modes.rules]]
-pattern = "helm\\s+.*(status|list)"
+pattern = "kubectl\\s+logs"
+watch = true
+interval = 10
+
+[[modes.rules]]
+pattern = "nu\\s+dot\\.nu"
 watch = false
