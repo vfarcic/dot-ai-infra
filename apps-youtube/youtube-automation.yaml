@@ -213,3 +213,4 @@ spec:
     name: youtube-automation
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
+    minReplicas: 1

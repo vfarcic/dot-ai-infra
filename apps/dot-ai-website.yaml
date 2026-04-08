@@ -33,3 +33,4 @@ spec:
     name: dot-ai-website
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
+    minReplicas: 1

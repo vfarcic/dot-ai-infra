@@ -64,3 +64,4 @@ spec:
     name: jaeger
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
