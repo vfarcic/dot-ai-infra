@@ -32,4 +32,4 @@ spec:
     kind: Deployment
     name: dot-ai-website
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
