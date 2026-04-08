@@ -212,4 +212,4 @@ spec:
     kind: Deployment
     name: youtube-automation
   updatePolicy:
-    updateMode: "Auto"
+    updateMode: "InPlaceOrRecreate"
