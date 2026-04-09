@@ -158,9 +158,9 @@ metadata:
   namespace: monitoring
 spec:
   targetRef:
-    apiVersion: apps/v1
-    kind: StatefulSet
-    name: prometheus-prometheus-stack-kube-prom-prometheus
+    apiVersion: monitoring.coreos.com/v1
+    kind: Prometheus
+    name: prometheus-stack-kube-prom-prometheus
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
