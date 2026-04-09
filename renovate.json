@@ -37,6 +37,11 @@
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
       "description": "Automerge minor and patch updates"
+    },
+    {
+      "matchFileNames": ["apps/**"],
+      "automerge": true,
+      "description": "Automerge all updates to manifests in apps directories"
     }
   ],
   "customManagers": [
