@@ -33,6 +33,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: crossplane
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -47,6 +52,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: crossplane-rbac-manager
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1

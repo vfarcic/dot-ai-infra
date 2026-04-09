@@ -8,6 +8,11 @@ spec:
     apiVersion: apps/v1
     kind: StatefulSet
     name: argocd-application-controller
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -22,6 +27,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: argocd-repo-server
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -36,6 +46,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: argocd-server
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -50,6 +65,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: argocd-redis
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -64,6 +84,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: argocd-notifications-controller
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -78,6 +103,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: argocd-applicationset-controller
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -92,6 +122,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: argocd-dex-server
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1

@@ -161,6 +161,11 @@ spec:
     apiVersion: monitoring.coreos.com/v1
     kind: Prometheus
     name: prometheus-stack-kube-prom-prometheus
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -175,6 +180,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: prometheus-stack-grafana
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -189,6 +199,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: prometheus-stack-kube-state-metrics
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -203,6 +218,11 @@ spec:
     apiVersion: apps/v1
     kind: DaemonSet
     name: prometheus-stack-prometheus-node-exporter
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
@@ -217,6 +237,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: prometheus-stack-kube-prom-operator
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
