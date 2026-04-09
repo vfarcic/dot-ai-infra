@@ -118,7 +118,7 @@ spec:
     kind: Deployment
     name: dot-ai-controller-manager
   updatePolicy:
-    updateMode: "Initial"
+    updateMode: "InPlaceOrRecreate"
     minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
@@ -146,7 +146,7 @@ spec:
     kind: Deployment
     name: dot-ai-stack-agentic-tools
   updatePolicy:
-    updateMode: "Initial"
+    updateMode: "InPlaceOrRecreate"
     minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
@@ -160,7 +160,7 @@ spec:
     kind: Deployment
     name: dot-ai-ui
   updatePolicy:
-    updateMode: "Initial"
+    updateMode: "InPlaceOrRecreate"
     minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1

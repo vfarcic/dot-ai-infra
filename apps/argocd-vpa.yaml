@@ -23,7 +23,7 @@ spec:
     kind: Deployment
     name: argocd-repo-server
   updatePolicy:
-    updateMode: "Initial"
+    updateMode: "InPlaceOrRecreate"
     minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
@@ -37,7 +37,7 @@ spec:
     kind: Deployment
     name: argocd-server
   updatePolicy:
-    updateMode: "Initial"
+    updateMode: "InPlaceOrRecreate"
     minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
