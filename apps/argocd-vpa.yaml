@@ -9,7 +9,8 @@ spec:
     kind: StatefulSet
     name: argocd-application-controller
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -22,7 +23,8 @@ spec:
     kind: Deployment
     name: argocd-repo-server
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "Initial"
+    minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -35,7 +37,8 @@ spec:
     kind: Deployment
     name: argocd-server
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "Initial"
+    minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler

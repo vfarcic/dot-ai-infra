@@ -162,7 +162,8 @@ spec:
     kind: StatefulSet
     name: prometheus-prometheus-stack-kube-prom-prometheus
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -175,7 +176,8 @@ spec:
     kind: Deployment
     name: prometheus-stack-grafana
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -188,7 +190,8 @@ spec:
     kind: Deployment
     name: prometheus-stack-kube-state-metrics
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -215,4 +218,5 @@ spec:
     kind: Deployment
     name: prometheus-stack-kube-prom-operator
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1

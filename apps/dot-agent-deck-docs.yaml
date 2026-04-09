@@ -103,4 +103,5 @@ spec:
     kind: Deployment
     name: dot-agent-deck-docs
   updatePolicy:
-    updateMode: "Off"
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
