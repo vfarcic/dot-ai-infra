@@ -84,7 +84,7 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 
 ### Phase 3: VPA InPlaceOrRecreate Rollout
 
-- [ ] **Stable workloads switched to VPA InPlaceOrRecreate** — Move external-secrets, dex, node-exporter, crossplane-rbac-manager, argocd-redis, argocd-notifications, argocd-applicationset, argocd-dex-server to `updateMode: "InPlaceOrRecreate"` with `minReplicas: 1`. (dot-ai-website and jaeger already switched in Phase 2 canary.) These are low-traffic, predictable workloads where automatic right-sizing is safe.
+- [x] **Stable workloads switched to VPA InPlaceOrRecreate** — Switched all 8 stable workloads to `updateMode: "InPlaceOrRecreate"` with `minReplicas: 1`: external-secrets, dot-ai-stack-dex, node-exporter, crossplane-rbac-manager, argocd-redis, argocd-notifications, argocd-applicationset, argocd-dex-server. Changes applied across 4 files (`apps/argocd-vpa.yaml`, `apps/external-secrets.yaml`, `apps/dot-ai-stack.yaml`, `apps/crossplane.yaml`, `apps/prometheus-stack.yaml`). Argo CD synced successfully; all pods running with VPA-set resource requests matching recommendations. Initial right-sizing used pod recreation (expected for large deltas); subsequent incremental adjustments expected to resize in-place.
 - [ ] **In-place resize verified for InPlaceOrRecreate workloads** — Confirm VPA-driven incremental resource changes apply in-place without pod restarts on already-right-sized pods. Initial right-sizing will use recreation; subsequent adjustments should use in-place resize.
 
 ### Phase 4: Full Rollout + Monitoring
