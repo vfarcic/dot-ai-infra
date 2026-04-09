@@ -1,24 +1,30 @@
 [[modes]]
-name = "gitops-ops"
+name = "infra"
+init_command = "devbox shell"
 
+# Persistent pane: watch Argo CD application sync status across the cluster
 [[modes.panes]]
-command = "kubectl get apps -n argocd -w"
-name = "Argo CD Apps"
+command = "kubectl get applications -n argocd -w"
+name = "ArgoCD Apps"
 
+# Reactive: kubectl describe/explain output (one-shot)
 [[modes.rules]]
-pattern = "kubectl\\s+(describe|explain)"
+pattern = "kubectl\\s+(describe|explain|diff)"
 watch = false
 
+# Reactive: kubectl get/top refreshing
 [[modes.rules]]
 pattern = "kubectl\\s+(get|top)"
 watch = true
 interval = 5
 
+# Reactive: kubectl logs
 [[modes.rules]]
 pattern = "kubectl\\s+logs"
 watch = true
 interval = 10
 
+# Reactive: helm operations (template, diff, status)
 [[modes.rules]]
-pattern = "nu\\s+dot\\.nu"
+pattern = "helm\\s+(template|diff|status|list)"
 watch = false
