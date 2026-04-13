@@ -212,6 +212,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: youtube-automation
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
