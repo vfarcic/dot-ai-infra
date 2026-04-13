@@ -1,0 +1,29 @@
+[[modes]]
+name = "gitops"
+init_command = "devbox shell"
+reactive_panes = 2
+
+# Persistent pane: Monitor Argo CD application sync and health status
+[[modes.panes]]
+command = "kubectl get applications -n argocd -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status"
+name = "Argo CD Apps"
+
+# Reactive rule: Capture kubectl get commands
+[[modes.rules]]
+pattern = "kubectl\\s+get"
+watch = false
+
+# Reactive rule: Capture kubectl describe commands
+[[modes.rules]]
+pattern = "kubectl\\s+describe"
+watch = false
+
+# Reactive rule: Capture kubectl logs commands
+[[modes.rules]]
+pattern = "kubectl\\s+logs"
+watch = false
+
+# Reactive rule: Capture helm list commands
+[[modes.rules]]
+pattern = "helm\\s+list"
+watch = false
