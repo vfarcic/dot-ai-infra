@@ -34,6 +34,7 @@ spec:
           GDRIVE_FOLDER_ID: "0AK6Oeg1IJ0QEUk9PVA"
           YOUTUBE_CHANNEL_ID: UCfz8x0lVzJpb_dgWm9kPVrw
           BLUESKY_IDENTIFIER: vfarcic
+          SLACK_CHANNEL_IDS: C2ZJ0TC4S
         volumeMounts:
           - name: oauth-credentials
             mountPath: /client_secret.json
