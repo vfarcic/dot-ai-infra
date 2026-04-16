@@ -5,6 +5,7 @@
   ],
   "dependencyDashboardApproval": false,
   "platformAutomerge": false,
+  "ignoreTests": true,
   "prConcurrentLimit": 10,
   "argocd": {
     "fileMatch": ["apps/.+\\.yaml$"]
