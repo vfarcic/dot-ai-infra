@@ -28,6 +28,11 @@ watch = false
 pattern = "kubectl\\s+logs"
 watch = false
 
+# Reactive rule: Capture kubectl rollout status commands
+[[modes.rules]]
+pattern = "kubectl\\s+rollout\\s+status"
+watch = false
+
 # Reactive rule: Capture helm list commands
 [[modes.rules]]
 pattern = "helm\\s+list"
