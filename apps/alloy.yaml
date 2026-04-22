@@ -20,10 +20,6 @@ spec:
                 role = "node"
               }
 
-              discovery.kubernetes "pods" {
-                role = "pod"
-              }
-
               discovery.kubernetes "services" {
                 role = "service"
               }
@@ -102,28 +98,10 @@ spec:
                 }
               }
 
-              // Relabel pod targets to extract namespace, pod, container labels for logs
-              discovery.relabel "pods" {
-                targets = discovery.kubernetes.pods.targets
-
-                rule {
-                  source_labels = ["__meta_kubernetes_namespace"]
-                  target_label  = "namespace"
-                }
-                rule {
-                  source_labels = ["__meta_kubernetes_pod_name"]
-                  target_label  = "pod"
-                }
-                rule {
-                  source_labels = ["__meta_kubernetes_pod_container_name"]
-                  target_label  = "container"
-                }
-              }
-
               // Kubernetes pod log collection
-              loki.source.kubernetes "pods" {
-                targets    = discovery.relabel.pods.output
-                forward_to = [loki.write.grafana_cloud.receiver]
+              loki.source.podlogs "pods" {
+                forward_to    = [loki.write.grafana_cloud.receiver]
+                tail_from_end = true
               }
 
               // Write logs to Grafana Cloud Loki
