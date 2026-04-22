@@ -101,6 +101,23 @@ spec:
                   auth     = otelcol.auth.basic.grafana_cloud.handler
                 }
               }
+
+              // Kubernetes pod log collection
+              loki.source.kubernetes "pods" {
+                targets    = discovery.kubernetes.pods.targets
+                forward_to = [loki.write.grafana_cloud.receiver]
+              }
+
+              // Write logs to Grafana Cloud Loki
+              loki.write "grafana_cloud" {
+                endpoint {
+                  url = "https://logs-prod-039.grafana.net/loki/api/v1/push"
+                  basic_auth {
+                    username = "1563731"
+                    password = env("GRAFANA_CLOUD_API_TOKEN")
+                  }
+                }
+              }
           extraEnv:
             - name: GRAFANA_CLOUD_API_TOKEN
               valueFrom:
