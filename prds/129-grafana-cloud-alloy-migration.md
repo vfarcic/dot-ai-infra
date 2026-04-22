@@ -76,7 +76,7 @@ Migrate entirely to Grafana Cloud:
 ## Secrets Required
 
 One new GCP Secret Manager secret:
-- **`grafana-cloud-api-token`** — API token with MetricsPublisher + TracesPublisher scopes
+- **`grafana-token`** — Cloud Access Policy token with metrics:write + traces:write scopes
 
 Non-secret values hardcoded in Alloy config:
 - Grafana Cloud Prometheus remote write URL and username (numeric instance ID)
@@ -87,8 +87,8 @@ Non-secret values hardcoded in Alloy config:
 Each milestone follows: **deploy new -> validate in Grafana Cloud -> remove old -> confirm old is gone**.
 
 - [x] **Milestone 1: Connect Claude Code to Grafana Cloud MCP** — Add Grafana MCP server to `.mcp.json`, validate Claude Code can query Grafana Cloud dashboards and data sources via MCP tools
-- [ ] **Milestone 2a: Deploy Alloy and validate metrics in Grafana Cloud** — Create `apps/alloy.yaml` with Alloy DaemonSet, kube-state-metrics sub-chart, ExternalSecret for API token, and River config scraping kubelet/cAdvisor/nodes/pods and remote-writing to Grafana Cloud Mimir. Validate by querying `up` in Grafana Cloud Explore via MCP
-- [ ] **Milestone 2b: Remove self-hosted Prometheus + Grafana** — Move `apps/prometheus-stack.yaml` to `legacy/`, add `grafana.devopstoolkit.ai` 301 redirect HTTPRoute + GCP certificate to `apps/alloy.yaml`. Validate `monitoring` namespace resources are pruned and redirect works
+- [x] **Milestone 2a: Deploy Alloy and validate metrics in Grafana Cloud** — Create `apps/alloy.yaml` with Alloy DaemonSet, kube-state-metrics sub-chart, ExternalSecret for API token, and River config scraping kubelet/cAdvisor/nodes/pods and remote-writing to Grafana Cloud Mimir. Validate by querying `up` in Grafana Cloud Explore via MCP
+- [x] **Milestone 2b: Remove self-hosted Prometheus + Grafana** — Move `apps/prometheus-stack.yaml` to `legacy/`, add `grafana.devopstoolkit.ai` 301 redirect HTTPRoute + GCP certificate to `apps/alloy.yaml`. Validate `monitoring` namespace resources are pruned and redirect works
 - [ ] **Milestone 3a: Route traces through Alloy to Grafana Cloud Tempo** — Add OTLP receiver and Tempo exporter to Alloy config, update `apps/dot-ai-stack.yaml` OTEL endpoint from `http://jaeger.jaeger:4318/v1/traces` to `http://alloy.alloy:4318`. Validate by triggering a dot-ai request and finding the trace in Grafana Cloud Tempo via MCP
 - [ ] **Milestone 3b: Remove Jaeger** — Move `apps/jaeger.yaml` to `legacy/`, remove Jaeger certs from `apps/crossplane-gcp-certificates.yaml`, add `jaeger.devopstoolkit.ai` redirect to `apps/alloy.yaml`. Validate `jaeger` namespace resources are pruned and redirect works
 - [ ] **Milestone 4: Create dashboards in Grafana Cloud** — Import dashboards gnetId 7249 (Kubernetes Cluster) and 6417 (Kubernetes Pods), enable Grafana Cloud Kubernetes Integration for enhanced dashboards, optionally create dot-ai service dashboard with traces + metrics correlation. Validate all dashboards show live data via MCP
