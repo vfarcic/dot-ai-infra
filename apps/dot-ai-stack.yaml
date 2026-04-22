@@ -50,7 +50,7 @@ spec:
             - name: OTEL_EXPORTER_TYPE
               value: "otlp"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://alloy.alloy:4318"
+              value: "http://alloy.alloy:4318/v1/traces"
           webUI:
             baseUrl: https://ui.devopstoolkit.ai
           gateway:
