@@ -63,7 +63,7 @@ Migrate entirely to Grafana Cloud:
 | **Delete** | `apps/prometheus-stack.yaml` | After metrics validated |
 | **Modify** | `apps/dot-ai-stack.yaml` | Update OTEL endpoint from Jaeger to Alloy |
 | **Delete** | `apps/jaeger.yaml` | After traces validated |
-| **Modify** | `apps/crossplane-gcp-certificates.yaml` | Remove Jaeger cert resources (lines 1-45) |
+| **Modify** | `apps/crossplane-gcp-certificates.yaml` | Remove Jaeger cert resources, add Grafana + Jaeger redirect certs |
 | **Modify** | `CLAUDE.md` | Update monitoring documentation |
 
 ### Unchanged
@@ -86,14 +86,25 @@ Non-secret values hardcoded in Alloy config:
 
 Each milestone follows: **deploy new -> validate in Grafana Cloud -> remove old -> confirm old is gone**.
 
+**Validation and operations**: Use the Grafana MCP server for all validation steps and any other operations it supports (querying metrics, searching traces, listing datasources, managing dashboards, checking alerts). Prefer MCP over kubectl, curl, or direct API calls whenever Grafana MCP tooling covers the operation.
+
 - [x] **Milestone 1: Connect Claude Code to Grafana Cloud MCP** — Add Grafana MCP server to `.mcp.json`, validate Claude Code can query Grafana Cloud dashboards and data sources via MCP tools
 - [x] **Milestone 2a: Deploy Alloy and validate metrics in Grafana Cloud** — Create `apps/alloy.yaml` with Alloy DaemonSet, kube-state-metrics sub-chart, ExternalSecret for API token, and River config scraping kubelet/cAdvisor/nodes/pods and remote-writing to Grafana Cloud Mimir. Validate by querying `up` in Grafana Cloud Explore via MCP
 - [x] **Milestone 2b: Remove self-hosted Prometheus + Grafana** — Delete `apps/prometheus-stack.yaml`, add `grafana.devopstoolkit.ai` 301 redirect HTTPRoute + GCP certificate to `apps/alloy.yaml`. Validate `monitoring` namespace resources are pruned and redirect works
-- [ ] **Milestone 3a: Route traces through Alloy to Grafana Cloud Tempo** — Add OTLP receiver and Tempo exporter to Alloy config, update `apps/dot-ai-stack.yaml` OTEL endpoint from `http://jaeger.jaeger:4318/v1/traces` to `http://alloy.alloy:4318`. Validate by triggering a dot-ai request and finding the trace in Grafana Cloud Tempo via MCP
-- [ ] **Milestone 3b: Remove Jaeger** — Delete `apps/jaeger.yaml`, remove Jaeger certs from `apps/crossplane-gcp-certificates.yaml`, add `jaeger.devopstoolkit.ai` redirect to `apps/alloy.yaml`. Validate `jaeger` namespace resources are pruned and redirect works
-- [ ] **Milestone 4: Create dashboards in Grafana Cloud** — Import dashboards gnetId 7249 (Kubernetes Cluster) and 6417 (Kubernetes Pods), enable Grafana Cloud Kubernetes Integration for enhanced dashboards, optionally create dot-ai service dashboard with traces + metrics correlation. Validate all dashboards show live data via MCP
-- [ ] **Milestone 5: Update documentation** — Update `CLAUDE.md` with Grafana Cloud URLs, redirects, new secrets, MCP integration notes. Update `.env.vals.yaml` if needed. Validate documentation matches current state
+- [ ] **Milestone 3a: Route traces through Alloy to Grafana Cloud Tempo** — Add OTLP receiver and Tempo exporter to Alloy config, update `apps/dot-ai-stack.yaml` OTEL endpoint from `http://jaeger.jaeger:4318/v1/traces` to `http://alloy.alloy:4318`. Validate using Grafana MCP `tempo_traceql-search` to find traces in Tempo after triggering a dot-ai request via MCP (e.g., dot-ai query)
+- [ ] **Milestone 3b: Remove Jaeger** — Delete `apps/jaeger.yaml`, remove Jaeger certs from `apps/crossplane-gcp-certificates.yaml`, add `jaeger.devopstoolkit.ai` redirect to `apps/alloy.yaml`. Validate `jaeger` namespace resources are pruned via kubectl; validate redirect works
+- [ ] **Milestone 4: Create dashboards in Grafana Cloud** — Use Grafana MCP `update_dashboard` to create dashboards (Kubernetes Cluster, Kubernetes Pods, dot-ai service). Use MCP `search_dashboards` and `get_dashboard_by_uid` to validate they show live data. Use MCP `query_prometheus` to verify underlying metrics
+- [ ] **Milestone 5: Update documentation** — Update `CLAUDE.md` with Grafana Cloud URLs, redirects, new secrets, MCP integration notes. Update `.env.vals.yaml` if needed. Use Grafana MCP `list_datasources` and `search_dashboards` to verify documentation matches current state
 - [ ] **Cleanup: Revert Argo CD targetRevision to HEAD** — Before merging to main, change `argocd/app.yaml` `targetRevision` back to `HEAD` (temporarily set to feature branch for development)
+
+## Known Limitations
+
+**Crossplane cannot delete GCP Certificate Manager resources.** The Crossplane GCP provider lacks `certificatemanager.certmapentries.delete` and `certificatemanager.certificates.delete` permissions. When certificate resources are removed from manifests, Argo CD will block on pruning because Crossplane's finalizers cannot complete. Workaround:
+1. Remove the resources from manifests and push
+2. Manually delete via `gcloud certificate-manager maps entries delete <name> --map=devopstoolkit-map --project=vfarcic` and `gcloud certificate-manager certificates delete <name> --project=vfarcic`
+3. Crossplane resources will then finalize and be cleaned up
+
+**ProviderConfig is cluster-scoped.** Despite having a `namespace` field in manifests, `ProviderConfig` (`gcp.m.upbound.io`) is cluster-scoped. All certificate resources share a single `default` ProviderConfig. Keep it defined in exactly one place (`apps/crossplane-gcp-certificates.yaml`) — do not duplicate it in other app manifests.
 
 ## Rollback Strategy
 
