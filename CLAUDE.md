@@ -14,6 +14,7 @@ This is a GitOps infrastructure repository for deploying the **dot-ai** platform
 - **Nushell** - Shell scripting (`.nu` files)
 - **External Secrets + vals** - Secrets management with GCP Secret Manager
 - **Gateway API** - Kubernetes ingress/routing
+- **Grafana Cloud + Alloy** - Observability (metrics, traces, logs) via Grafana Alloy agent forwarding to Grafana Cloud
 
 ## Directory Structure
 
@@ -61,6 +62,7 @@ The `scripts/` directory contains modular Nushell functions:
 Apps in `apps/` are automatically synced by Argo CD. Key applications:
 
 - `dot-ai-stack.yaml` - Main dot-ai platform (Helm chart from `ghcr.io/vfarcic/dot-ai-stack`)
+- `alloy.yaml` - Grafana Alloy agent + kube-state-metrics (metrics, traces, logs to Grafana Cloud)
 - `external-secrets.yaml` - External Secrets operator
 - `gateway.yaml` - GKE Gateway for routing
 
@@ -76,6 +78,7 @@ Required environment variables for setup:
 - `DOT_AI_AUTH_TOKEN`
 - `SLACK_WEBHOOK_URL`
 - `ARGO_CD_PASSWORD`
+- `GRAFANA_SERVICE_ACCOUNT_TOKEN`
 
 ## Dependency Updates
 
@@ -87,4 +90,6 @@ This project works with the custom `Solution` CRD (`dot-ai.devopstoolkit.live/v1
 
 ## MCP Integration
 
-The `.mcp.json` configures the dot-ai MCP server at `https://dot-ai.devopstoolkit.ai` for Claude Code integration.
+The `.mcp.json` configures MCP servers for Claude Code integration:
+- **dot-ai** — cluster operations at `https://dot-ai.devopstoolkit.ai`
+- **Grafana** — query metrics, traces, logs, and dashboards in Grafana Cloud
