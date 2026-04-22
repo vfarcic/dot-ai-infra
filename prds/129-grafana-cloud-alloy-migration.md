@@ -1,6 +1,6 @@
 # PRD #129: Migrate to Grafana Cloud with Alloy (replacing kube-prometheus-stack + Jaeger)
 
-**Status**: Not Started
+**Status**: In Progress
 **Priority**: High
 **Created**: 2026-04-22
 **GitHub Issue**: [#129](https://github.com/vfarcic/dot-ai-infra/issues/129)
@@ -58,7 +58,7 @@ Migrate entirely to Grafana Cloud:
 
 | Action | File | Details |
 |--------|------|---------|
-| **Modify** | `.mcp.json` | Add Grafana Cloud MCP server |
+| **Create** | `.mcp.json` | Grafana Cloud MCP server (Docker stdio transport) |
 | **Create** | `apps/alloy.yaml` | Argo CD Application for Grafana Alloy + supporting resources |
 | **Move** | `apps/prometheus-stack.yaml` -> `legacy/prometheus-stack.yaml` | After metrics validated |
 | **Modify** | `apps/dot-ai-stack.yaml` | Update OTEL endpoint from Jaeger to Alloy |
@@ -86,7 +86,7 @@ Non-secret values hardcoded in Alloy config:
 
 Each milestone follows: **deploy new -> validate in Grafana Cloud -> remove old -> confirm old is gone**.
 
-- [ ] **Milestone 1: Connect Claude Code to Grafana Cloud MCP** — Add Grafana MCP server to `.mcp.json`, validate Claude Code can query Grafana Cloud dashboards and data sources via MCP tools
+- [x] **Milestone 1: Connect Claude Code to Grafana Cloud MCP** — Add Grafana MCP server to `.mcp.json`, validate Claude Code can query Grafana Cloud dashboards and data sources via MCP tools
 - [ ] **Milestone 2a: Deploy Alloy and validate metrics in Grafana Cloud** — Create `apps/alloy.yaml` with Alloy DaemonSet, kube-state-metrics sub-chart, ExternalSecret for API token, and River config scraping kubelet/cAdvisor/nodes/pods and remote-writing to Grafana Cloud Mimir. Validate by querying `up` in Grafana Cloud Explore via MCP
 - [ ] **Milestone 2b: Remove self-hosted Prometheus + Grafana** — Move `apps/prometheus-stack.yaml` to `legacy/`, add `grafana.devopstoolkit.ai` 301 redirect HTTPRoute + GCP certificate to `apps/alloy.yaml`. Validate `monitoring` namespace resources are pruned and redirect works
 - [ ] **Milestone 3a: Route traces through Alloy to Grafana Cloud Tempo** — Add OTLP receiver and Tempo exporter to Alloy config, update `apps/dot-ai-stack.yaml` OTEL endpoint from `http://jaeger.jaeger:4318/v1/traces` to `http://alloy.alloy:4318`. Validate by triggering a dot-ai request and finding the trace in Grafana Cloud Tempo via MCP

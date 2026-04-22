@@ -3,10 +3,15 @@ name = "gitops"
 init_command = "devbox shell"
 reactive_panes = 2
 
-# Persistent pane: Monitor Argo CD application sync and health status
+# Persistent pane: Monitor uncommitted file status
 [[modes.panes]]
-command = "kubectl get applications -n argocd -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status"
-name = "Argo CD Apps"
+command = "git status --short"
+name = "Git Status"
+
+# Reactive rule: Capture Argo CD application status commands
+[[modes.rules]]
+pattern = "kubectl\\s+get\\s+applications"
+watch = false
 
 # Reactive rule: Capture kubectl get commands
 [[modes.rules]]
