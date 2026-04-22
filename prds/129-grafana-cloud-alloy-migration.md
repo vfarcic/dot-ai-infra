@@ -60,9 +60,9 @@ Migrate entirely to Grafana Cloud:
 |--------|------|---------|
 | **Create** | `.mcp.json` | Grafana Cloud MCP server (Docker stdio transport) |
 | **Create** | `apps/alloy.yaml` | Argo CD Application for Grafana Alloy + supporting resources |
-| **Move** | `apps/prometheus-stack.yaml` -> `legacy/prometheus-stack.yaml` | After metrics validated |
+| **Delete** | `apps/prometheus-stack.yaml` | After metrics validated |
 | **Modify** | `apps/dot-ai-stack.yaml` | Update OTEL endpoint from Jaeger to Alloy |
-| **Move** | `apps/jaeger.yaml` -> `legacy/jaeger.yaml` | After traces validated |
+| **Delete** | `apps/jaeger.yaml` | After traces validated |
 | **Modify** | `apps/crossplane-gcp-certificates.yaml` | Remove Jaeger cert resources (lines 1-45) |
 | **Modify** | `CLAUDE.md` | Update monitoring documentation |
 
@@ -88,30 +88,16 @@ Each milestone follows: **deploy new -> validate in Grafana Cloud -> remove old 
 
 - [x] **Milestone 1: Connect Claude Code to Grafana Cloud MCP** — Add Grafana MCP server to `.mcp.json`, validate Claude Code can query Grafana Cloud dashboards and data sources via MCP tools
 - [x] **Milestone 2a: Deploy Alloy and validate metrics in Grafana Cloud** — Create `apps/alloy.yaml` with Alloy DaemonSet, kube-state-metrics sub-chart, ExternalSecret for API token, and River config scraping kubelet/cAdvisor/nodes/pods and remote-writing to Grafana Cloud Mimir. Validate by querying `up` in Grafana Cloud Explore via MCP
-- [x] **Milestone 2b: Remove self-hosted Prometheus + Grafana** — Move `apps/prometheus-stack.yaml` to `legacy/`, add `grafana.devopstoolkit.ai` 301 redirect HTTPRoute + GCP certificate to `apps/alloy.yaml`. Validate `monitoring` namespace resources are pruned and redirect works
+- [x] **Milestone 2b: Remove self-hosted Prometheus + Grafana** — Delete `apps/prometheus-stack.yaml`, add `grafana.devopstoolkit.ai` 301 redirect HTTPRoute + GCP certificate to `apps/alloy.yaml`. Validate `monitoring` namespace resources are pruned and redirect works
 - [ ] **Milestone 3a: Route traces through Alloy to Grafana Cloud Tempo** — Add OTLP receiver and Tempo exporter to Alloy config, update `apps/dot-ai-stack.yaml` OTEL endpoint from `http://jaeger.jaeger:4318/v1/traces` to `http://alloy.alloy:4318`. Validate by triggering a dot-ai request and finding the trace in Grafana Cloud Tempo via MCP
-- [ ] **Milestone 3b: Remove Jaeger** — Move `apps/jaeger.yaml` to `legacy/`, remove Jaeger certs from `apps/crossplane-gcp-certificates.yaml`, add `jaeger.devopstoolkit.ai` redirect to `apps/alloy.yaml`. Validate `jaeger` namespace resources are pruned and redirect works
+- [ ] **Milestone 3b: Remove Jaeger** — Delete `apps/jaeger.yaml`, remove Jaeger certs from `apps/crossplane-gcp-certificates.yaml`, add `jaeger.devopstoolkit.ai` redirect to `apps/alloy.yaml`. Validate `jaeger` namespace resources are pruned and redirect works
 - [ ] **Milestone 4: Create dashboards in Grafana Cloud** — Import dashboards gnetId 7249 (Kubernetes Cluster) and 6417 (Kubernetes Pods), enable Grafana Cloud Kubernetes Integration for enhanced dashboards, optionally create dot-ai service dashboard with traces + metrics correlation. Validate all dashboards show live data via MCP
 - [ ] **Milestone 5: Update documentation** — Update `CLAUDE.md` with Grafana Cloud URLs, redirects, new secrets, MCP integration notes. Update `.env.vals.yaml` if needed. Validate documentation matches current state
 - [ ] **Cleanup: Revert Argo CD targetRevision to HEAD** — Before merging to main, change `argocd/app.yaml` `targetRevision` back to `HEAD` (temporarily set to feature branch for development)
 
 ## Rollback Strategy
 
-All original manifests are preserved in `legacy/`. Rollback is incremental per milestone:
-
-**Metrics rollback (undo Milestone 2)**:
-1. `git mv legacy/prometheus-stack.yaml apps/prometheus-stack.yaml`
-2. Remove metrics-related resources from `apps/alloy.yaml`
-
-**Traces rollback (undo Milestone 3)**:
-1. `git mv legacy/jaeger.yaml apps/jaeger.yaml`
-2. Revert `apps/dot-ai-stack.yaml` OTEL config to Jaeger endpoint
-3. Restore Jaeger certs in `apps/crossplane-gcp-certificates.yaml`
-
-**Full rollback**:
-1. Restore both files from `legacy/` to `apps/`
-2. Revert all modified files, remove `apps/alloy.yaml`
-3. Commit and push — Argo CD restores everything
+All original manifests are preserved in git history. Rollback is a single `git revert` of the merge commit — Argo CD picks up the reverted state and restores everything automatically.
 
 ## Success Criteria
 
@@ -121,4 +107,4 @@ All original manifests are preserved in `legacy/`. Rollback is incremental per m
 - Grafana Assistant accessible and functional with cluster data
 - `grafana.devopstoolkit.ai` and `jaeger.devopstoolkit.ai` redirect to Grafana Cloud
 - Self-hosted Prometheus, Grafana, and Jaeger fully decommissioned
-- Original manifests preserved in `legacy/` for rollback
+- Rollback possible via `git revert` of the merge commit

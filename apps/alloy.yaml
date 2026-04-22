@@ -74,12 +74,48 @@ spec:
                   }
                 }
               }
+
+              // OTLP trace receiver
+              otelcol.receiver.otlp "default" {
+                http {
+                  endpoint = "0.0.0.0:4318"
+                }
+                grpc {
+                  endpoint = "0.0.0.0:4317"
+                }
+                output {
+                  traces = [otelcol.exporter.otlp.grafana_cloud.input]
+                }
+              }
+
+              // Basic auth for Grafana Cloud Tempo
+              otelcol.auth.basic "grafana_cloud" {
+                username = "1558032"
+                password = env("GRAFANA_CLOUD_API_TOKEN")
+              }
+
+              // Export traces to Grafana Cloud Tempo
+              otelcol.exporter.otlp "grafana_cloud" {
+                client {
+                  endpoint = "tempo-prod-27-prod-eu-central-0.grafana.net:443"
+                  auth     = otelcol.auth.basic.grafana_cloud.handler
+                }
+              }
           extraEnv:
             - name: GRAFANA_CLOUD_API_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: grafana-cloud-api-token
                   key: token
+          extraPorts:
+            - name: otlp-http
+              port: 4318
+              targetPort: 4318
+              protocol: TCP
+            - name: otlp-grpc
+              port: 4317
+              targetPort: 4317
+              protocol: TCP
   destination:
     server: https://kubernetes.default.svc
     namespace: alloy
