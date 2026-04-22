@@ -93,6 +93,7 @@ Each milestone follows: **deploy new -> validate in Grafana Cloud -> remove old 
 - [ ] **Milestone 3b: Remove Jaeger** — Move `apps/jaeger.yaml` to `legacy/`, remove Jaeger certs from `apps/crossplane-gcp-certificates.yaml`, add `jaeger.devopstoolkit.ai` redirect to `apps/alloy.yaml`. Validate `jaeger` namespace resources are pruned and redirect works
 - [ ] **Milestone 4: Create dashboards in Grafana Cloud** — Import dashboards gnetId 7249 (Kubernetes Cluster) and 6417 (Kubernetes Pods), enable Grafana Cloud Kubernetes Integration for enhanced dashboards, optionally create dot-ai service dashboard with traces + metrics correlation. Validate all dashboards show live data via MCP
 - [ ] **Milestone 5: Update documentation** — Update `CLAUDE.md` with Grafana Cloud URLs, redirects, new secrets, MCP integration notes. Update `.env.vals.yaml` if needed. Validate documentation matches current state
+- [ ] **Cleanup: Revert Argo CD targetRevision to HEAD** — Before merging to main, change `argocd/app.yaml` `targetRevision` back to `HEAD` (temporarily set to feature branch for development)
 
 ## Rollback Strategy
 
