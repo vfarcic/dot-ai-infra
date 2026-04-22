@@ -224,6 +224,25 @@ spec:
             hostname: dot.grafana.net
             statusCode: 301
 ---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: jaeger-redirect
+  namespace: alloy
+spec:
+  parentRefs:
+    - name: main
+      namespace: gateway
+      sectionName: https
+  hostnames:
+    - jaeger.devopstoolkit.ai
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            hostname: dot.grafana.net
+            statusCode: 301
+---
 apiVersion: gcp.m.upbound.io/v1beta1
 kind: ProviderConfig
 metadata:
@@ -265,6 +284,40 @@ spec:
     certificatesRefs:
       - name: grafana-certificate
     hostname: grafana.devopstoolkit.ai
+    map: devopstoolkit-map
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: Certificate
+metadata:
+  name: jaeger-certificate
+  namespace: alloy
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  forProvider:
+    location: global
+    managed:
+      domains:
+        - jaeger.devopstoolkit.ai
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: CertificateMapEntry
+metadata:
+  name: jaeger-map-entry
+  namespace: alloy
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  forProvider:
+    certificatesRefs:
+      - name: jaeger-certificate
+    hostname: jaeger.devopstoolkit.ai
     map: devopstoolkit-map
   providerConfigRef:
     kind: ProviderConfig
