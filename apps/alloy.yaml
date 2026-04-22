@@ -1,0 +1,170 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: alloy
+    targetRevision: 1.7.0
+    helm:
+      valuesObject:
+        alloy:
+          configMap:
+            content: |
+              discovery.kubernetes "nodes" {
+                role = "node"
+              }
+
+              discovery.kubernetes "pods" {
+                role = "pod"
+              }
+
+              discovery.kubernetes "services" {
+                role = "service"
+              }
+
+              // Kubelet metrics
+              prometheus.scrape "kubelet" {
+                targets         = discovery.kubernetes.nodes.targets
+                scheme          = "https"
+                scrape_interval = "60s"
+                bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+                tls_config {
+                  ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                  insecure_skip_verify = true
+                }
+                forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+              }
+
+              // cAdvisor metrics
+              prometheus.scrape "cadvisor" {
+                targets         = discovery.kubernetes.nodes.targets
+                scheme          = "https"
+                scrape_interval = "60s"
+                metrics_path    = "/metrics/cadvisor"
+                bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+                tls_config {
+                  ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                  insecure_skip_verify = true
+                }
+                forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+              }
+
+              // kube-state-metrics
+              prometheus.scrape "kube_state_metrics" {
+                targets = [{
+                  __address__ = "kube-state-metrics.alloy:8080",
+                }]
+                scrape_interval = "60s"
+                forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+              }
+
+              // Remote write to Grafana Cloud Mimir
+              prometheus.remote_write "grafana_cloud" {
+                endpoint {
+                  url = "https://prometheus-prod-58-prod-eu-central-0.grafana.net/api/prom/push"
+                  basic_auth {
+                    username = "3136112"
+                    password = env("GRAFANA_CLOUD_API_TOKEN")
+                  }
+                }
+              }
+          extraEnv:
+            - name: GRAFANA_CLOUD_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-api-token
+                  key: token
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alloy
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-state-metrics
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-state-metrics
+    targetRevision: 7.2.2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alloy
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: grafana-cloud-api-token
+  namespace: alloy
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: gcp-secret-manager
+    kind: ClusterSecretStore
+  target:
+    name: grafana-cloud-api-token
+    creationPolicy: Owner
+  data:
+    - secretKey: token
+      remoteRef:
+        key: grafana-service-account-token
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: alloy-vpa
+  namespace: alloy
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: DaemonSet
+    name: alloy
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: kube-state-metrics-vpa
+  namespace: alloy
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kube-state-metrics
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 50m
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+    minReplicas: 1
