@@ -168,3 +168,68 @@ spec:
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: grafana-redirect
+  namespace: alloy
+spec:
+  parentRefs:
+    - name: main
+      namespace: gateway
+      sectionName: https
+  hostnames:
+    - grafana.devopstoolkit.ai
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            hostname: dot.grafana.net
+            statusCode: 301
+---
+apiVersion: gcp.m.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+  namespace: alloy
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  projectID: vfarcic
+  credentials:
+    source: InjectedIdentity
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: Certificate
+metadata:
+  name: grafana-certificate
+  namespace: alloy
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  forProvider:
+    location: global
+    managed:
+      domains:
+        - grafana.devopstoolkit.ai
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
+---
+apiVersion: certificatemanager.gcp.m.upbound.io/v1beta1
+kind: CertificateMapEntry
+metadata:
+  name: grafana-map-entry
+  namespace: alloy
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  forProvider:
+    certificatesRefs:
+      - name: grafana-certificate
+    hostname: grafana.devopstoolkit.ai
+    map: devopstoolkit-map
+  providerConfigRef:
+    kind: ProviderConfig
+    name: default
