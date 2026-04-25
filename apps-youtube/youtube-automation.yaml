@@ -223,6 +223,7 @@ spec:
       - containerName: "*"
         minAllowed:
           cpu: 50m
+          memory: 1Gi
   updatePolicy:
     updateMode: "InPlaceOrRecreate"
     minReplicas: 1
