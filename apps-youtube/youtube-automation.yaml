@@ -106,6 +106,12 @@ spec:
     - secretKey: SLACK_API_TOKEN
       remoteRef:
         key: slack-api-token
+    - secretKey: GEMINI_API_KEY
+      remoteRef:
+        key: google-gemini-api-key
+    - secretKey: OPENAI_API_KEY
+      remoteRef:
+        key: openai-key
 ---
 apiVersion: gcp.m.upbound.io/v1beta1
 kind: ProviderConfig
