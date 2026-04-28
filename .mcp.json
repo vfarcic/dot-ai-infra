@@ -5,16 +5,10 @@
       "url": "https://dot-ai.devopstoolkit.ai"
     },
     "grafana": {
-      "command": "docker",
-      "args": [
-        "run", "--rm", "-i",
-        "-e", "GRAFANA_URL",
-        "-e", "GRAFANA_SERVICE_ACCOUNT_TOKEN",
-        "mcp/grafana", "-t", "stdio"
-      ],
-      "env": {
-        "GRAFANA_URL": "https://dot.grafana.net",
-        "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+      "type": "http",
+      "url": "https://mcp.grafana.com/mcp",
+      "headers": {
+        "X-Grafana-URL": "https://dot.grafana.net"
       }
     }
   }
