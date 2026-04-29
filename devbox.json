@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
-    "nushell@0.111.0",
+    "nushell@0.112.2",
     "kubernetes-helm@3.20.2",
     "git@2.53.0",
     "yq-go@4.52.5",
