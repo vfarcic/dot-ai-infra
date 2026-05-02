@@ -11,6 +11,8 @@ spec:
     name: dot-ai-secrets
     key: auth-token
   mode: manual
+  minOccurrences: 2
+  occurrenceWindowSeconds: 300
   eventSelectors:
     - type: Warning
       namespace: argocd
