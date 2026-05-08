@@ -11,7 +11,7 @@ spec:
     name: dot-ai-secrets
     key: auth-token
   mode: manual
-  minOccurrences: 2
+  minOccurrences: 3
   occurrenceWindowSeconds: 300
   eventSelectors:
     - type: Warning
