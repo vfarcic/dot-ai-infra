@@ -189,3 +189,5 @@ Based on cluster analysis (actual usage collected 2026-04-06):
 - Horizontal Pod Autoscaler (HPA) — all workloads are single-replica by design
 - Cluster Autoscaler tuning — may be revisited after VPA optimization reduces total resource requests
 - Cost analysis/reporting — focus is on technical right-sizing, not FinOps tooling
+
+

@@ -277,3 +277,5 @@ spec:
           requestRedirect:
             hostname: dot.grafana.net
             statusCode: 301
+
+
