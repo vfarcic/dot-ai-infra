@@ -15,6 +15,11 @@ spec:
       valuesObject:
         existingSecret: youtube-automation-secrets
         existingSecretKey: api-token
+        ama:
+          enabled: true
+          playlistId: PLyicRj904Z99d82mxPAtTtSR98g75Botj
+          schedule: "0 10 * * *"
+          emailTo: viktor@farcic.com
         env:
           GIT_REPO_URL: https://github.com/vfarcic/devops-catalog
           GIT_BRANCH: master
