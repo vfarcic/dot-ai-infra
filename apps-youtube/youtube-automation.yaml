@@ -203,9 +203,6 @@ spec:
     - name: main
       namespace: gateway
       sectionName: https
-    - name: main
-      namespace: gateway
-      sectionName: http
   hostnames:
     - youtube.devopstoolkit.ai
   rules:
