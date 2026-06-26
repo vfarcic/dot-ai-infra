@@ -5,7 +5,7 @@
     "kubernetes-helm@3.20.2",
     "git@2.54.0",
     "yq-go@4.53.3",
-    "vals@0.44.0",
+    "vals@0.44.1",
     "kubectl-tree@0.6.0",
     "linode-cli@5.56.2",
     "path:gcloud#google-cloud-sdk",
