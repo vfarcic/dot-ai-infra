@@ -13,12 +13,12 @@
   ],
   "shell": {
     "init_hook": [
-      "export PATH=\"$HOME/.local/bin:$PATH\"",
-      "[ -n \"$USE_VALS\" ] && eval \"$(vals env -export -f .env.vals.yaml)\"",
-      "[ -f .env ] && source .env"
+      "export PATH=\"$HOME/.local/bin:$HOME/.npm-global/bin:$PATH\"",
+      "if [ -n \"$USE_VALS\" ]; then eval \"$(vals env -export -f .env.vals.yaml)\"; fi",
+      "if [ -f .env ]; then source .env; fi"
     ],
     "scripts": {
-      "agent": ["claude --continue"]
+      "agent": ["claude"]
     }
   }
 }
