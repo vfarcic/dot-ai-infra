@@ -3,13 +3,6 @@
     "dot-ai": {
       "type": "http",
       "url": "https://dot-ai.devopstoolkit.ai"
-    },
-    "grafana": {
-      "type": "http",
-      "url": "https://mcp.grafana.com/mcp",
-      "headers": {
-        "X-Grafana-URL": "https://dot.grafana.net"
-      }
     }
   }
 }
