@@ -213,41 +213,41 @@
         }
       }
     },
-    "nushell@0.115.0": {
-      "last_modified": "2026-08-19T20:44:59Z",
-      "resolved": "github:NixOS/nixpkgs/07e1d92cdc0ed416cfa11ff3ca40d17e61cfba7a#nushell",
+    "nushell@0.115.1": {
+      "last_modified": "2026-08-27T07:16:00Z",
+      "resolved": "github:NixOS/nixpkgs/c27cdad491a991b11ed731760aa2ef8db0cb0410#nushell",
       "source": "devbox-search",
-      "version": "0.115.0",
+      "version": "0.115.1",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/pscm1ddagrr85rbc855nz8p0l7xp6bd2-nushell-0.115.0",
+              "path": "/nix/store/4wgp25hm6h6j3axk068ab5zjabcqjmrh-nushell-0.115.1",
               "default": true
             }
           ],
-          "store_path": "/nix/store/pscm1ddagrr85rbc855nz8p0l7xp6bd2-nushell-0.115.0"
+          "store_path": "/nix/store/4wgp25hm6h6j3axk068ab5zjabcqjmrh-nushell-0.115.1"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/ccccddpcjs509iddan38xhw8my931009-nushell-0.115.0",
+              "path": "/nix/store/zwzgkzkzjny50rkvnwyq5lf19d34mkr5-nushell-0.115.1",
               "default": true
             }
           ],
-          "store_path": "/nix/store/ccccddpcjs509iddan38xhw8my931009-nushell-0.115.0"
+          "store_path": "/nix/store/zwzgkzkzjny50rkvnwyq5lf19d34mkr5-nushell-0.115.1"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/9vinnxl5ansgi4xca5yidpypwzwqss4h-nushell-0.115.0",
+              "path": "/nix/store/3nggi9yb3pgi89h6z1hw11v6if0vmqia-nushell-0.115.1",
               "default": true
             }
           ],
-          "store_path": "/nix/store/9vinnxl5ansgi4xca5yidpypwzwqss4h-nushell-0.115.0"
+          "store_path": "/nix/store/3nggi9yb3pgi89h6z1hw11v6if0vmqia-nushell-0.115.1"
         }
       }
     },
